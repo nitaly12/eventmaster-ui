@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "../globals.css";
+import { DashboardAuthGuard } from "./_components/DashboardAuthGuard";
 import { DashboardSidebar } from "./_components/DashboardSidebar";
 import styles from "./_components/dashboard.module.css";
 
@@ -15,7 +16,9 @@ export default function DashboardLayout({ children }) {
     <div className={jakarta.className}>
       <div className={styles.shell}>
         <DashboardSidebar />
-        <div className={styles.main}>{children}</div>
+        <div className={styles.main}>
+          <DashboardAuthGuard>{children}</DashboardAuthGuard>
+        </div>
       </div>
     </div>
   );

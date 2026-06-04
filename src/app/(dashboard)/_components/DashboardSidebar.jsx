@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { clearAuthSession } from "@/lib/authSession";
+import { LogoutModal } from "./LogoutModal";
 import styles from "./dashboard.module.css";
 
 const navItems = [
@@ -82,6 +84,7 @@ export function DashboardSidebar() {
   const router = useRouter();
   const isSettingsRoute = pathname.startsWith("/dashboard/settings");
   const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     if (isSettingsRoute) setSettingsOpen(true);
@@ -153,7 +156,7 @@ export function DashboardSidebar() {
         <button
           type="button"
           className={styles.logoutBtn}
-          onClick={() => router.push("/login")}
+          onClick={() => setLogoutOpen(true)}
         >
           <span className={styles.navIcon}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -163,6 +166,16 @@ export function DashboardSidebar() {
           Logout
         </button>
       </div>
+
+      <LogoutModal
+        open={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        onConfirm={() => {
+          clearAuthSession();
+          setLogoutOpen(false);
+          router.push("/login");
+        }}
+      />
     </aside>
   );
 }

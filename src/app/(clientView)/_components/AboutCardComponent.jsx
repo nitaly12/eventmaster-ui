@@ -93,7 +93,7 @@ export const AboutCardComponent = () => {
             <div className="flex justify-center mt-10">
                 <div className="flex justify-center">
                     <div className="flex flex-col items-center">
-                        <Image src="/images/Ellipse 44.png" alt="team" width={150} height={150} />
+                        <Image src="/images/nitaly.jpg" alt="team" width={200} height={200} className="rounded-full" />
                         <h2 className="text-2xl font-bold text-[#344054]">AI</h2>
                         <p className="text-lg font-medium leading-relaxed text-[#475467]">Developer</p>
                     </div>

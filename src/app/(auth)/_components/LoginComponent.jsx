@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { setAuthSession } from "@/lib/authSession";
 import styles from "./login.module.css";
 
 function EyeIcon({ open }) {
@@ -69,8 +70,11 @@ export function LoginComponent() {
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async () => {
-    // Wire to auth API when available; redirect on success for now
+  const onSubmit = async (data) => {
+    setAuthSession({
+      email: data.email,
+      name: data.email.split("@")[0] || "Thomas Brown",
+    });
     router.push("/dashboard");
   };
 
