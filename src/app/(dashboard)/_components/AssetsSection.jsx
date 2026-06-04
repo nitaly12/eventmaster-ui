@@ -93,6 +93,51 @@ function validateAssetForm(form, assets, excludeId) {
   return errors;
 }
 
+function AssetCard({ asset, onDelete, onEdit }) {
+  const status = getAssetStatus(asset.qty);
+
+  return (
+    <article className={styles.assetCard}>
+      <span className={styles.assetCardNo}>{asset.no}</span>
+      <span className={styles.assetNamePill}>{asset.name}</span>
+      <p
+        className={`${styles.assetCardLine} ${
+          asset.qty === 0 ? styles.assetQtyZero : ""
+        }`}
+      >
+        {asset.qty}
+      </p>
+      <p className={styles.assetCardLine}>{asset.unit}</p>
+      <p className={styles.assetCardLine}>{asset.createdBy}</p>
+      <span
+        className={
+          status === "In Stock" ? styles.statusInStock : styles.statusOutOfStock
+        }
+      >
+        {status}
+      </span>
+      <div className={styles.assetCardActions}>
+        <button
+          type="button"
+          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+          aria-label={`Delete ${asset.name}`}
+          onClick={() => onDelete(asset)}
+        >
+          <TrashIcon />
+        </button>
+        <button
+          type="button"
+          className={`${styles.actionBtn} ${styles.editBtn}`}
+          aria-label={`Edit ${asset.name}`}
+          onClick={() => onEdit(asset)}
+        >
+          <EditIcon />
+        </button>
+      </div>
+    </article>
+  );
+}
+
 export function AssetsSection() {
   const [assets, setAssets] = useState(initialAssets);
   const [search, setSearch] = useState("");
@@ -206,7 +251,7 @@ export function AssetsSection() {
 
   return (
     <>
-      <div className={styles.tableCard}>
+      <div className={`${styles.tableCard} ${styles.assetPageCard}`}>
         <div className={styles.assetTableHeader}>
           <h2 className={styles.tableTitle}>Asset Management</h2>
           <div className={styles.assetSearchWrap}>
@@ -230,59 +275,76 @@ export function AssetsSection() {
           </button>
         </div>
 
-        <div className={styles.assetTableColumns}>
-          <span>No</span>
-          <span>Asset Name</span>
-          <span>Qty</span>
-          <span>Unit</span>
-          <span>Created By</span>
-          <span>Status</span>
-          <span>Action</span>
+        <div className={styles.assetTableDesktop}>
+          <div className={styles.assetTableColumns}>
+            <span>No</span>
+            <span>Asset Name</span>
+            <span>Qty</span>
+            <span>Unit</span>
+            <span>Created By</span>
+            <span>Status</span>
+            <span>Action</span>
+          </div>
+
+          <div className={styles.assetTableBody}>
+            {pageAssets.length === 0 ? (
+              <p className={styles.memberEmpty}>No assets found.</p>
+            ) : (
+              pageAssets.map((asset) => {
+                const status = getAssetStatus(asset.qty);
+                return (
+                  <div key={asset.id} className={styles.assetTableRow}>
+                    <span className={styles.memberId}>{asset.no}</span>
+                    <span className={styles.assetNamePill}>{asset.name}</span>
+                    <span className={asset.qty === 0 ? styles.assetQtyZero : undefined}>
+                      {asset.qty}
+                    </span>
+                    <span>{asset.unit}</span>
+                    <span>{asset.createdBy}</span>
+                    <span
+                      className={
+                        status === "In Stock" ? styles.statusInStock : styles.statusOutOfStock
+                      }
+                    >
+                      {status}
+                    </span>
+                    <div className={styles.actionCell}>
+                      <button
+                        type="button"
+                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                        aria-label={`Delete ${asset.name}`}
+                        onClick={() => setDeleteTarget(asset)}
+                      >
+                        <TrashIcon />
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.actionBtn} ${styles.editBtn}`}
+                        aria-label={`Edit ${asset.name}`}
+                        onClick={() => openUpdateModal(asset)}
+                      >
+                        <EditIcon />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
 
-        <div className={styles.assetTableBody}>
+        <div className={styles.assetCardsMobile}>
           {pageAssets.length === 0 ? (
             <p className={styles.memberEmpty}>No assets found.</p>
           ) : (
-            pageAssets.map((asset) => {
-              const status = getAssetStatus(asset.qty);
-              return (
-                <div key={asset.id} className={styles.assetTableRow}>
-                  <span className={styles.memberId}>{asset.no}</span>
-                  <span className={styles.assetNamePill}>{asset.name}</span>
-                  <span className={asset.qty === 0 ? styles.assetQtyZero : undefined}>
-                    {asset.qty}
-                  </span>
-                  <span>{asset.unit}</span>
-                  <span>{asset.createdBy}</span>
-                  <span
-                    className={
-                      status === "In Stock" ? styles.statusInStock : styles.statusOutOfStock
-                    }
-                  >
-                    {status}
-                  </span>
-                  <div className={styles.actionCell}>
-                    <button
-                      type="button"
-                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                      aria-label={`Delete ${asset.name}`}
-                      onClick={() => setDeleteTarget(asset)}
-                    >
-                      <TrashIcon />
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.actionBtn} ${styles.editBtn}`}
-                      aria-label={`Edit ${asset.name}`}
-                      onClick={() => openUpdateModal(asset)}
-                    >
-                      <EditIcon />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
+            pageAssets.map((asset) => (
+              <AssetCard
+                key={asset.id}
+                asset={asset}
+                onDelete={setDeleteTarget}
+                onEdit={openUpdateModal}
+              />
+            ))
           )}
         </div>
 

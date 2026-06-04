@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearAuthSession } from "@/lib/authSession";
+import { useDashboardNav } from "./DashboardNavContext";
 import { LogoutModal } from "./LogoutModal";
 import styles from "./dashboard.module.css";
 
@@ -82,17 +83,45 @@ function ChevronIcon({ expanded }) {
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { mobileNavOpen, closeMobileNav } = useDashboardNav();
   const isSettingsRoute = pathname.startsWith("/dashboard/settings");
-  const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
-    if (isSettingsRoute) setSettingsOpen(true);
+    const syncSettingsOpen = () => {
+      if (!isSettingsRoute) {
+        setSettingsOpen(false);
+        return;
+      }
+      setSettingsOpen(window.innerWidth > 768);
+    };
+
+    syncSettingsOpen();
+    window.addEventListener("resize", syncSettingsOpen);
+    return () => window.removeEventListener("resize", syncSettingsOpen);
   }, [isSettingsRoute]);
 
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      setSettingsOpen(false);
+    } else if (isSettingsRoute && window.innerWidth <= 768) {
+      setSettingsOpen(true);
+    }
+  }, [mobileNavOpen, isSettingsRoute]);
+
+  const closeNav = () => closeMobileNav();
+
   return (
-    <aside className={styles.sidebar}>
-      <Link href="/dashboard" className={styles.logoWrap} aria-label="EventMaster home">
+    <aside
+      className={`${styles.sidebar} ${mobileNavOpen ? styles.sidebarMobileOpen : ""}`}
+    >
+      <Link
+        href="/dashboard"
+        className={styles.logoWrap}
+        aria-label="EventMaster home"
+        onClick={closeNav}
+      >
         <span className={styles.logoCircle}>E</span>
       </Link>
 
@@ -108,6 +137,7 @@ export function DashboardSidebar() {
               key={item.href}
               href={item.href}
               className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+              onClick={closeNav}
             >
               <NavIcon name={item.icon} />
               <span className={styles.navLinkLabel}>{item.label}</span>
@@ -124,6 +154,7 @@ export function DashboardSidebar() {
                 setSettingsOpen((prev) => !prev);
               } else {
                 router.push("/dashboard/settings/organization");
+                closeNav();
               }
             }}
             aria-expanded={settingsOpen}
@@ -142,6 +173,7 @@ export function DashboardSidebar() {
                     key={item.href}
                     href={item.href}
                     className={`${styles.navSubLink} ${isSubActive ? styles.navSubLinkActive : ""}`}
+                    onClick={closeNav}
                   >
                     {item.label}
                   </Link>
@@ -163,7 +195,7 @@ export function DashboardSidebar() {
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          Logout
+          <span className={styles.navLinkLabel}>Logout</span>
         </button>
       </div>
 

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { defaultOrganizationProfile } from "../_data/organizationSettingsData";
+import { AccountSettingsNav } from "./AccountSettingsNav";
 import styles from "./dashboard.module.css";
 
 function EditIcon() {
@@ -117,6 +118,8 @@ export function OrganizationProfileSection() {
         </div>
 
         <h2 className={styles.accountSectionHeading}>Organization Name</h2>
+
+        <AccountSettingsNav />
 
         <div className={styles.accountFormGrid}>
           <div className={styles.accountFormField}>

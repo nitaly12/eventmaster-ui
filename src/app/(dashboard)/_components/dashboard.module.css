@@ -204,6 +204,31 @@
   margin-bottom: 24px;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.menuToggle {
+  display: none;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #344054;
+  cursor: pointer;
+}
+
+.menuToggle:hover {
+  background: #f9fafb;
+}
+
 .headerTitle {
   margin: 0;
   font-size: 24px;
@@ -430,6 +455,13 @@
   cursor: pointer;
   text-decoration: none;
   transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.newEventPlus {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .newEventBtn:hover {
@@ -2048,6 +2080,94 @@
   color: #667085;
 }
 
+.memberTableDesktop {
+  display: block;
+}
+
+.memberCardsMobile {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.memberCard {
+  padding: 18px 18px 16px;
+  border: 1px solid #eaecf0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.memberCardId {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #98a2b3;
+}
+
+.memberCardProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.memberCardName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.memberCardDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.memberCardLine {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #475467;
+  word-break: break-word;
+}
+
+.memberCardFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memberCardRole {
+  width: 100%;
+}
+
+.memberCardRole .roleBadgeAdmin {
+  width: 100%;
+  height: 40px;
+  font-size: 14px;
+}
+
+.memberCardRole .roleDropdown {
+  width: 100%;
+}
+
+.memberCardRole .roleDropdownTrigger {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  font-size: 14px;
+}
+
+.memberCardDelete {
+  align-self: flex-start;
+  width: 40px;
+  height: 40px;
+}
+
 .pagination {
   display: flex;
   flex-wrap: wrap;
@@ -2108,20 +2228,13 @@
 }
 
 @media (max-width: 1100px) {
-  .memberTableColumns,
   .attendeeTableColumns {
     display: none;
   }
 
-  .memberTableRow,
   .attendeeTableRow {
     grid-template-columns: 1fr;
     gap: 10px;
-  }
-
-  .memberEmail,
-  .memberAddress {
-    white-space: normal;
   }
 
   .actionCell {
@@ -2248,18 +2361,96 @@
   font-weight: 600;
 }
 
+.assetTableDesktop {
+  display: block;
+}
+
+.assetCardsMobile {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.assetCard {
+  padding: 18px 18px 16px;
+  border: 1px solid #eaecf0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.assetCardNo {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #98a2b3;
+}
+
+.assetCard .assetNamePill {
+  margin-bottom: 12px;
+}
+
+.assetCardLine {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #475467;
+}
+
+.assetCard .statusInStock,
+.assetCard .statusOutOfStock {
+  margin-bottom: 14px;
+}
+
+.assetCardActions {
+  display: flex;
+  gap: 10px;
+}
+
+.assetCardActions .actionBtn {
+  width: 40px;
+  height: 40px;
+}
+
 @media (max-width: 900px) {
   .assetTableHeader {
     grid-template-columns: 1fr;
   }
+}
 
-  .assetTableColumns {
+@media (max-width: 768px) {
+  .assetTableHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .assetTableHeader .tableTitle {
+    font-size: 18px;
+  }
+
+  .assetTableHeader .newCategoryBtn {
+    width: 100%;
+    height: 44px;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .assetTableDesktop {
     display: none;
   }
 
-  .assetTableRow {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  .assetCardsMobile {
+    display: flex;
+  }
+
+  .assetPageCard {
+    overflow-x: visible;
   }
 }
 
@@ -3650,17 +3841,178 @@
   }
 }
 
+/* Mobile account settings sub-nav */
+.accountSettingsNav {
+  display: none;
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.accountSettingsNavTrigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #344054;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accountSettingsNavTrigger:hover {
+  border-color: #7939ef;
+}
+
+.accountSettingsNavChevron {
+  flex-shrink: 0;
+  color: #667085;
+  transition: transform 0.2s ease;
+}
+
+.accountSettingsNavChevronOpen {
+  transform: rotate(180deg);
+}
+
+.accountSettingsNavMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  overflow: hidden;
+  border: 1px solid #eaecf0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
+}
+
+.accountSettingsNavItem {
+  display: block;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #667085;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.accountSettingsNavItem:hover {
+  background: #f9fafb;
+  color: #344054;
+}
+
+.accountSettingsNavItemActive {
+  background: #f4ebff;
+  color: #7939ef;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
+  .accountSettingsNav {
+    display: block;
+  }
+
   .accountFormGrid {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .accountSettingsCard {
+    border-radius: 18px;
+  }
+
+  .accountSettingsBanner {
+    height: 72px;
   }
 
   .accountSettingsBody {
-    padding: 0 20px 32px;
+    padding: 0 18px 28px;
+  }
+
+  .accountLogoWrap {
+    margin: -48px auto 20px;
+  }
+
+  .accountOrgLogo {
+    width: 100px;
+    height: 100px;
+  }
+
+  .accountSectionHeading {
+    margin-bottom: 16px;
+    font-size: 17px;
+  }
+
+  .accountFormActions {
+    margin-top: 24px;
+    padding-bottom: 8px;
+  }
+
+  .accountEditBtn,
+  .accountSaveBtn,
+  .accountCancelBtn {
+    min-width: 120px;
+  }
+
+  .accountCardPlant {
+    width: 120px;
+    height: 96px;
+    opacity: 0.85;
   }
 
   .userProfileCard {
-    padding: 24px 20px 32px;
+    padding: 20px 18px 28px;
+    border-radius: 18px;
+  }
+
+  .userProfileLayout {
+    gap: 24px;
+  }
+
+  .userProfileAside {
+    align-items: center;
+    text-align: center;
+  }
+
+  .userProfileAvatar {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .userProfileContent .accountSettingsNav {
+    margin-bottom: 16px;
+  }
+
+  .userProfileFieldsGrid {
+    gap: 18px;
+  }
+
+  .userProfilePasswordGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .userProfileFooter {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .userProfileFooter .accountCancelBtn,
+  .userProfileFooter .userProfileSaveBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .accountChangePasswordBtn {
+    width: 100%;
   }
 }
 
@@ -3703,5 +4055,241 @@
 
 .userRequestActionCell {
   gap: 6px;
+}
+
+.sidebarBackdrop {
+  display: none;
+}
+
+/* ─── Mobile responsive (dashboard) ─── */
+@media (max-width: 768px) {
+  .menuToggle {
+    display: flex;
+  }
+
+  .sidebarBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    border: none;
+    background: rgba(16, 24, 40, 0.45);
+    cursor: pointer;
+  }
+
+  .sidebar {
+    z-index: 50;
+    width: min(280px, 88vw);
+    padding: 24px 20px 20px;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease, visibility 0.28s ease;
+    box-shadow: none;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .sidebarMobileOpen {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(16, 24, 40, 0.12);
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .logoWrap {
+    justify-content: flex-start;
+    margin-bottom: 28px;
+    padding: 0 4px;
+  }
+
+  .navLink {
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 13px 16px;
+  }
+
+  .navLinkLabel,
+  .navChevron {
+    display: inline;
+  }
+
+  .navSettingsGroup {
+    position: relative;
+  }
+
+  .navSubMenu {
+    display: none;
+    position: static;
+    margin: 4px 0 0;
+    padding: 0 0 0 20px;
+    border-left: 2px solid #f2f4f7;
+    box-shadow: none;
+  }
+
+  .sidebarMobileOpen .navSubMenu {
+    display: flex;
+  }
+
+  .navSubLink {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .logoutBtn {
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 13px 16px;
+  }
+
+  .content {
+    padding: 16px 14px 32px;
+  }
+
+  .header {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .headerLeft {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .headerTitle {
+    font-size: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .headerActions {
+    flex-shrink: 0;
+    width: auto;
+    gap: 8px;
+  }
+
+  .profile {
+    display: none;
+  }
+
+  .iconBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .newEventBtn {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .notificationPanel {
+    position: fixed;
+    top: 72px;
+    right: 14px;
+    left: 14px;
+    width: auto;
+    max-width: none;
+  }
+
+  .statsGrid {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .statCard {
+    min-height: 96px;
+    padding: 18px 20px;
+    border-radius: 18px;
+  }
+
+  .statValue {
+    font-size: 28px;
+  }
+
+  .middleGrid {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .chartCard {
+    padding: 18px 16px 14px;
+    border-radius: 18px;
+  }
+
+  .promoCard {
+    min-height: 220px;
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+
+  .promoTitle {
+    font-size: 20px;
+  }
+
+  .tableCard {
+    padding: 16px;
+    border-radius: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 16px;
+  }
+
+  .memberSearchWrap {
+    max-width: none;
+  }
+
+  .memberTableDesktop {
+    display: none;
+  }
+
+  .memberCardsMobile {
+    display: flex;
+  }
+
+  .memberPageCard {
+    overflow-x: visible;
+  }
+
+  .attendeeTableColumns,
+  .attendeeTableRow,
+  .userRequestTableColumns,
+  .userRequestTableRow {
+    min-width: 640px;
+  }
+
+  .eventsFilterCard {
+    overflow-x: auto;
+  }
+
+  .eventDetailBanner {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 420px) {
+  .newEventLabel {
+    display: none;
+  }
+
+  .newEventBtn {
+    width: 40px;
+    padding: 0;
+  }
+
+  .headerTitle {
+    font-size: 18px;
+  }
 }
 

@@ -1,8 +1,6 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "../globals.css";
-import { DashboardAuthGuard } from "./_components/DashboardAuthGuard";
-import { DashboardSidebar } from "./_components/DashboardSidebar";
-import styles from "./_components/dashboard.module.css";
+import { DashboardShell } from "./_components/DashboardShell";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -14,12 +12,7 @@ export const metadata = {
 export default function DashboardLayout({ children }) {
   return (
     <div className={jakarta.className}>
-      <div className={styles.shell}>
-        <DashboardSidebar />
-        <div className={styles.main}>
-          <DashboardAuthGuard>{children}</DashboardAuthGuard>
-        </div>
-      </div>
+      <DashboardShell>{children}</DashboardShell>
     </div>
   );
 }

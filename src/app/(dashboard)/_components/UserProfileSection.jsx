@@ -6,6 +6,7 @@ import {
   USER_GENDER_OPTIONS,
   defaultUserProfile,
 } from "../_data/organizationSettingsData";
+import { AccountSettingsNav } from "./AccountSettingsNav";
 import styles from "./dashboard.module.css";
 
 function CameraIcon() {
@@ -191,6 +192,8 @@ export function UserProfileSection() {
         </aside>
 
         <div className={styles.userProfileContent}>
+          <AccountSettingsNav />
+
           <div className={styles.userProfileFieldsGrid}>
             <div className={styles.accountFormField}>
               <label htmlFor="user-name" className={styles.accountFormLabel}>

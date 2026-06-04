@@ -38,23 +38,70 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function MemberAvatar({ name, avatar }) {
+function MemberAvatar({ name, avatar, size = 36 }) {
   if (avatar) {
     return (
       <Image
         src={avatar}
         alt={name}
-        width={36}
-        height={36}
+        width={size}
+        height={size}
         className={styles.memberAvatar}
+        style={{ width: size, height: size }}
       />
     );
   }
 
   return (
-    <span className={styles.memberAvatarFallback} aria-hidden>
+    <span
+      className={styles.memberAvatarFallback}
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
       {getInitials(name)}
     </span>
+  );
+}
+
+function MemberCard({
+  member,
+  onRoleChange,
+  onDelete,
+}) {
+  return (
+    <article className={styles.memberCard}>
+      <span className={styles.memberCardId}>{member.id}</span>
+
+      <div className={styles.memberCardProfile}>
+        <MemberAvatar name={member.name} avatar={member.avatar} size={40} />
+        <span className={styles.memberCardName}>{member.name}</span>
+      </div>
+
+      <div className={styles.memberCardDetails}>
+        <p className={styles.memberCardLine}>{member.gender}</p>
+        <p className={styles.memberCardLine}>{member.email}</p>
+        <p className={styles.memberCardLine}>{member.address}</p>
+      </div>
+
+      <div className={styles.memberCardFooter}>
+        <div className={styles.memberCardRole}>
+          <RoleDropdown
+            role={member.role}
+            onChange={(role) => onRoleChange(member.id, role)}
+          />
+        </div>
+        {member.role !== "Admin" && (
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.deleteBtn} ${styles.memberCardDelete}`}
+            aria-label={`Delete ${member.name}`}
+            onClick={() => onDelete(member)}
+          >
+            <TrashIcon />
+          </button>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -130,7 +177,7 @@ export function MembersSection() {
 
   return (
     <>
-    <div className={styles.tableCard}>
+    <div className={`${styles.tableCard} ${styles.memberPageCard}`}>
       <div className={styles.tableHeader}>
         <h2 className={styles.tableTitle}>Show All Members</h2>
         <div className={styles.memberSearchWrap}>
@@ -148,47 +195,64 @@ export function MembersSection() {
         </div>
       </div>
 
-      <div className={styles.memberTableColumns}>
-        <span>ID</span>
-        <span>Name</span>
-        <span>Gender</span>
-        <span>Email</span>
-        <span>Address</span>
-        <span>Role</span>
-        <span>Action</span>
+      <div className={styles.memberTableDesktop}>
+        <div className={styles.memberTableColumns}>
+          <span>ID</span>
+          <span>Name</span>
+          <span>Gender</span>
+          <span>Email</span>
+          <span>Address</span>
+          <span>Role</span>
+          <span>Action</span>
+        </div>
+
+        <div className={styles.memberTableBody}>
+          {pageMembers.length === 0 ? (
+            <p className={styles.memberEmpty}>No members found.</p>
+          ) : (
+            pageMembers.map((member) => (
+              <div key={member.id} className={styles.memberTableRow}>
+                <span className={styles.memberId}>{member.id}</span>
+                <div className={styles.memberNameCell}>
+                  <MemberAvatar name={member.name} avatar={member.avatar} />
+                  <span>{member.name}</span>
+                </div>
+                <span>{member.gender}</span>
+                <span className={styles.memberEmail}>{member.email}</span>
+                <span className={styles.memberAddress}>{member.address}</span>
+                <RoleDropdown
+                  role={member.role}
+                  onChange={(role) => handleRoleChange(member.id, role)}
+                />
+                <div className={styles.actionCell}>
+                  {member.role !== "Admin" && (
+                    <button
+                      type="button"
+                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                      aria-label={`Delete ${member.name}`}
+                      onClick={() => openDeleteModal(member)}
+                    >
+                      <TrashIcon />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      <div className={styles.memberTableBody}>
+      <div className={styles.memberCardsMobile}>
         {pageMembers.length === 0 ? (
           <p className={styles.memberEmpty}>No members found.</p>
         ) : (
           pageMembers.map((member) => (
-            <div key={member.id} className={styles.memberTableRow}>
-              <span className={styles.memberId}>{member.id}</span>
-              <div className={styles.memberNameCell}>
-                <MemberAvatar name={member.name} avatar={member.avatar} />
-                <span>{member.name}</span>
-              </div>
-              <span>{member.gender}</span>
-              <span className={styles.memberEmail}>{member.email}</span>
-              <span className={styles.memberAddress}>{member.address}</span>
-              <RoleDropdown
-                role={member.role}
-                onChange={(role) => handleRoleChange(member.id, role)}
-              />
-              <div className={styles.actionCell}>
-                {member.role !== "Admin" && (
-                  <button
-                    type="button"
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    aria-label={`Delete ${member.name}`}
-                    onClick={() => openDeleteModal(member)}
-                  >
-                    <TrashIcon />
-                  </button>
-                )}
-              </div>
-            </div>
+            <MemberCard
+              key={member.id}
+              member={member}
+              onRoleChange={handleRoleChange}
+              onDelete={openDeleteModal}
+            />
           ))
         )}
       </div>
