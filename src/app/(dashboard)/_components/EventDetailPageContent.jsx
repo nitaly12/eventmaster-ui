@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AgendaSection } from "./AgendaSection";
 import { MaterialSection } from "./MaterialSection";
+import { RegistrationFormSection } from "./RegistrationFormSection";
 import styles from "./dashboard.module.css";
 
 function BackIcon() {
@@ -83,63 +84,14 @@ export function EventDetailPageContent({ event }) {
         </div>
       </section>
 
-      <section className={styles.eventDetailSection}>
-        <h3 className={styles.eventDetailSectionTitle}>Registration Form</h3>
+      <RegistrationFormSection
+        eventId={event.id}
+        initialRegistrationForm={event.registrationForm}
+      />
 
-        <div className={styles.registrationBlock}>
-          <h4 className={styles.registrationSubtitle}>Contact Information</h4>
-          <div className={styles.registrationGrid}>
-            <div className={styles.registrationField}>
-              <label>
-                Full Name<span className={styles.requiredMark}>*</span>
-              </label>
-              <input type="text" placeholder="Enter full name" disabled />
-            </div>
-            <div className={styles.registrationField}>
-              <label>
-                Gender<span className={styles.requiredMark}>*</span>
-              </label>
-              <select disabled defaultValue="">
-                <option value="">Choosing gender</option>
-              </select>
-            </div>
-            <div className={styles.registrationField}>
-              <label>
-                Phone Number<span className={styles.requiredMark}>*</span>
-              </label>
-              <input type="text" placeholder="Enter phone number" disabled />
-            </div>
-            <div className={styles.registrationField}>
-              <label>
-                Email<span className={styles.requiredMark}>*</span>
-              </label>
-              <input type="email" placeholder="Enter email" disabled />
-            </div>
-          </div>
-        </div>
+      <MaterialSection eventId={event.id} initialMaterials={event.materials} />
 
-        <div className={styles.registrationBlock}>
-          <h4 className={styles.registrationSubtitle}>Affiliation</h4>
-          <div className={styles.registrationGrid}>
-            <div className={styles.registrationField}>
-              <label>
-                Company Name<span className={styles.requiredMark}>*</span>
-              </label>
-              <input type="text" placeholder="Enter company name" disabled />
-            </div>
-            <div className={styles.registrationField}>
-              <label>
-                Title/Position <span className={styles.optionalMark}>(optional)</span>
-              </label>
-              <input type="text" placeholder="Enter title/position" disabled />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <MaterialSection initialMaterials={event.materials} />
-
-      <AgendaSection initialAgenda={event.agenda} />
+      <AgendaSection eventId={event.id} initialAgenda={event.agenda} />
     </>
   );
 }

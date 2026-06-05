@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { defaultOrganizationProfile } from "../_data/organizationSettingsData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyUpdated } from "@/lib/toast";
 import { AccountSettingsNav } from "./AccountSettingsNav";
 import styles from "./dashboard.module.css";
 
@@ -86,16 +88,37 @@ export function OrganizationProfileSection() {
   const [form, setForm] = useState(defaultOrganizationProfile);
   const [saved, setSaved] = useState(defaultOrganizationProfile);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
-    setSaved({ ...form });
+  useEffect(() => {
+    apiGet("/api/organization")
+      .then((data) => {
+        setForm(data);
+        setSaved(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    const data = await apiSend("/api/organization", "PATCH", {
+      name: form.name,
+      address: form.address,
+    });
+    setSaved(data);
+    setForm(data);
     setEditing(false);
+    notifyUpdated("Organization profile");
   };
 
   const handleCancel = () => {
     setForm({ ...saved });
     setEditing(false);
   };
+
+  if (loading) {
+    return <p className={styles.memberEmpty}>Loading organization profile...</p>;
+  }
 
   return (
     <div className={styles.accountSettingsCard}>

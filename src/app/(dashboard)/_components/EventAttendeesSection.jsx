@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  ATTENDEES_PAGE_SIZE,
-  getEventAttendees,
-} from "../_data/attendeesData";
+import { useEffect, useMemo, useState } from "react";
+import { ATTENDEES_PAGE_SIZE } from "../_data/attendeesData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyDeleted } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import styles from "./dashboard.module.css";
 
@@ -49,7 +48,19 @@ function buildPageNumbers(current, total) {
 }
 
 export function EventAttendeesSection({ eventId, eventTitle }) {
-  const [attendees, setAttendees] = useState(() => getEventAttendees(eventId));
+  const [attendees, setAttendees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const reloadAttendees = async () => {
+    const data = await apiGet(`/api/events/${eventId}/attendees`);
+    setAttendees(data);
+  };
+
+  useEffect(() => {
+    reloadAttendees()
+      .catch(() => setAttendees([]))
+      .finally(() => setLoading(false));
+  }, [eventId]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -75,9 +86,14 @@ export function EventAttendeesSection({ eventId, eventTitle }) {
     setPage(1);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTarget) {
-      setAttendees((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      await apiSend(
+        `/api/events/${eventId}/attendees?attendeeId=${deleteTarget.id}`,
+        "DELETE",
+      );
+      await reloadAttendees();
+      notifyDeleted("Attendee");
     }
     setDeleteTarget(null);
   };
@@ -115,7 +131,9 @@ export function EventAttendeesSection({ eventId, eventTitle }) {
         </div>
 
         <div className={styles.attendeeTableBody}>
-          {pageAttendees.length === 0 ? (
+          {loading ? (
+            <p className={styles.memberEmpty}>Loading attendees...</p>
+          ) : pageAttendees.length === 0 ? (
             <p className={styles.memberEmpty}>No attendees found.</p>
           ) : (
             pageAttendees.map((attendee) => (

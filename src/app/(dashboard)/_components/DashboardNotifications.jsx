@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { initialNotifications } from "../_data/notificationsData";
+import { apiGet, apiSend } from "@/lib/client-api";
 import styles from "./dashboard.module.css";
 
 function BellIcon() {
@@ -21,15 +21,17 @@ function BellIcon() {
 }
 
 function getInitials(name) {
+  if (!name || typeof name !== "string") return "EM";
   return name
     .split(" ")
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
 }
 
-function NotificationAvatar({ name, avatar, avatarBg }) {
+function NotificationAvatar({ name, avatar, avatarBg = "#ede9fe" }) {
   if (avatar) {
     return (
       <span
@@ -54,8 +56,14 @@ function NotificationAvatar({ name, avatar, avatarBg }) {
 
 export function DashboardNotifications() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState([]);
   const wrapRef = useRef(null);
+
+  useEffect(() => {
+    apiGet("/api/notifications")
+      .then((data) => setNotifications(data))
+      .catch(() => setNotifications([]));
+  }, []);
 
   const unreadCount = useMemo(
     () => notifications.filter((item) => item.unread).length,
@@ -83,13 +91,15 @@ export function DashboardNotifications() {
     };
   }, [open]);
 
-  const markAsRead = (id) => {
+  const markAsRead = async (id) => {
+    await apiSend(`/api/notifications/${id}`, "PATCH");
     setNotifications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, unread: false } : item)),
     );
   };
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
+    await apiSend("/api/notifications", "PATCH");
     setNotifications((prev) => prev.map((item) => ({ ...item, unread: false })));
   };
 
@@ -153,8 +163,12 @@ export function DashboardNotifications() {
                     />
                     <div className={styles.notificationItemMain}>
                       <p className={styles.notificationItemMessage}>
-                        <strong>{item.name}</strong> requested access to{" "}
-                        <strong>EventMaster</strong>
+                        {item.message ?? (
+                          <>
+                            <strong>{item.name}</strong> requested access to{" "}
+                            <strong>EventMaster</strong>
+                          </>
+                        )}
                       </p>
                       <span className={styles.notificationItemTime}>{item.time}</span>
                     </div>

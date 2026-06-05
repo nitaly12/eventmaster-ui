@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { getDashboardEvent } from "../../../../_data/eventDetailData";
+import { getDashboardEventFromDb } from "@/lib/db/events";
 import { DashboardHeader } from "../../../../_components/DashboardHeader";
 import { EventAttendeesSection } from "../../../../_components/EventAttendeesSection";
 import styles from "../../../../_components/dashboard.module.css";
 
 export default async function EventAttendeesPage({ params }) {
   const { id } = await params;
-  const event = getDashboardEvent(id);
+  const event = await getDashboardEventFromDb(id);
 
   if (!event) {
     notFound();

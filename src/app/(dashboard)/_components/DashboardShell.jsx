@@ -3,6 +3,7 @@
 import { DashboardAuthGuard } from "./DashboardAuthGuard";
 import { DashboardNavProvider, useDashboardNav } from "./DashboardNavContext";
 import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardToast } from "./DashboardToast";
 import styles from "./dashboard.module.css";
 
 function SidebarBackdrop() {
@@ -29,6 +30,7 @@ export function DashboardShell({ children }) {
         <div className={styles.main}>
           <DashboardAuthGuard>{children}</DashboardAuthGuard>
         </div>
+        <DashboardToast />
       </div>
     </DashboardNavProvider>
   );

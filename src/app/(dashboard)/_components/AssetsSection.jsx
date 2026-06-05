@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  ASSETS_PAGE_SIZE,
-  assets as initialAssets,
-  getAssetStatus,
-} from "../_data/assetsData";
+import { useEffect, useMemo, useState } from "react";
+import { ASSETS_PAGE_SIZE, getAssetStatus } from "../_data/assetsData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { CreateAssetModal } from "./CreateAssetModal";
 import { DeleteAssetModal } from "./DeleteAssetModal";
+import { MemberSelectCheckbox } from "./MemberSelectCheckbox";
 import { UpdateAssetModal } from "./UpdateAssetModal";
 import styles from "./dashboard.module.css";
 
@@ -93,12 +92,21 @@ function validateAssetForm(form, assets, excludeId) {
   return errors;
 }
 
-function AssetCard({ asset, onDelete, onEdit }) {
+function AssetCard({ asset, selected, onToggleSelect, onDelete, onEdit }) {
   const status = getAssetStatus(asset.qty);
 
   return (
-    <article className={styles.assetCard}>
-      <span className={styles.assetCardNo}>{asset.no}</span>
+    <article
+      className={`${styles.assetCard} ${selected ? styles.assetCardSelected : ""}`}
+    >
+      <div className={styles.memberCardSelectRow}>
+        <MemberSelectCheckbox
+          checked={selected}
+          onChange={() => onToggleSelect(asset.id)}
+          aria-label={`Select ${asset.name}`}
+        />
+        <span className={styles.assetCardNo}>{asset.no}</span>
+      </div>
       <span className={styles.assetNamePill}>{asset.name}</span>
       <p
         className={`${styles.assetCardLine} ${
@@ -139,7 +147,15 @@ function AssetCard({ asset, onDelete, onEdit }) {
 }
 
 export function AssetsSection() {
-  const [assets, setAssets] = useState(initialAssets);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGet("/api/assets")
+      .then((data) => setAssets(data))
+      .catch(() => setAssets([]))
+      .finally(() => setLoading(false));
+  }, []);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
@@ -148,6 +164,7 @@ export function AssetsSection() {
   const [updateTarget, setUpdateTarget] = useState(null);
   const [updateForm, setUpdateForm] = useState(EMPTY_FORM);
   const [updateErrors, setUpdateErrors] = useState({});
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const filtered = useMemo(() => {
@@ -164,10 +181,22 @@ export function AssetsSection() {
     return filtered.slice(start, start + ASSETS_PAGE_SIZE);
   }, [filtered, currentPage]);
 
+  const pageIds = useMemo(() => pageAssets.map((asset) => asset.id), [pageAssets]);
+
+  const selectedCount = selectedIds.size;
+
+  const allPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+
+  const somePageSelected =
+    pageIds.some((id) => selectedIds.has(id)) && !allPageSelected;
+
   const pageNumbers = buildPageNumbers(currentPage, totalPages);
 
-  const renumberAssets = (list) =>
-    list.map((asset, index) => ({ ...asset, no: index + 1 }));
+  const reloadAssets = async () => {
+    const data = await apiGet("/api/assets");
+    setAssets(data);
+  };
 
   const openCreateModal = () => {
     setCreateForm(EMPTY_FORM);
@@ -181,27 +210,22 @@ export function AssetsSection() {
     setCreateErrors({});
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const errors = validateAssetForm(createForm, assets);
     if (Object.keys(errors).length > 0) {
       setCreateErrors(errors);
       return;
     }
 
-    setAssets((prev) =>
-      renumberAssets([
-        ...prev,
-        {
-          id: `ast-${Date.now()}`,
-          no: prev.length + 1,
-          name: createForm.name.trim(),
-          qty: Number(createForm.qty),
-          unit: createForm.unit,
-          createdBy: "Thomas Brown",
-        },
-      ]),
-    );
+    await apiSend("/api/assets", "POST", {
+      name: createForm.name.trim(),
+      qty: Number(createForm.qty),
+      unit: createForm.unit,
+      createdBy: "Thomas Brown",
+    });
+    await reloadAssets();
     closeCreateModal();
+    notifyCreated("Asset");
   };
 
   const openUpdateModal = (asset) => {
@@ -220,34 +244,93 @@ export function AssetsSection() {
     setUpdateErrors({});
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const errors = validateAssetForm(updateForm, assets, updateTarget?.id);
     if (Object.keys(errors).length > 0) {
       setUpdateErrors(errors);
       return;
     }
 
-    setAssets((prev) =>
-      prev.map((asset) =>
-        asset.id === updateTarget?.id
-          ? {
-              ...asset,
-              name: updateForm.name.trim(),
-              qty: Number(updateForm.qty),
-              unit: updateForm.unit,
-            }
-          : asset,
-      ),
-    );
+    await apiSend(`/api/assets/${updateTarget?.id}`, "PATCH", {
+      name: updateForm.name.trim(),
+      qty: Number(updateForm.qty),
+      unit: updateForm.unit,
+    });
+    await reloadAssets();
     closeUpdateModal();
+    notifyUpdated("Asset");
   };
 
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      setAssets((prev) => renumberAssets(prev.filter((asset) => asset.id !== deleteTarget.id)));
-    }
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) {
+        pageIds.forEach((id) => next.delete(id));
+      } else {
+        pageIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const openDeleteModal = (asset) => {
+    setDeleteTarget({ mode: "single", id: asset.id, name: asset.name });
+  };
+
+  const openBulkDeleteModal = () => {
+    setDeleteTarget({ mode: "bulk", ids: [...selectedIds], count: selectedIds.size });
+  };
+
+  const closeDeleteModal = () => {
     setDeleteTarget(null);
   };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.mode === "single") {
+      await apiSend(`/api/assets/${deleteTarget.id}`, "DELETE");
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
+    } else {
+      await apiSend("/api/assets", "DELETE", { ids: deleteTarget.ids });
+      clearSelection();
+    }
+
+    const toastLabel =
+      deleteTarget.mode === "bulk"
+        ? `${deleteTarget.count} asset${deleteTarget.count === 1 ? "" : "s"}`
+        : "Asset";
+    await reloadAssets();
+    closeDeleteModal();
+    notifyDeleted(toastLabel);
+  };
+
+  const deleteModalTitle =
+    deleteTarget?.mode === "bulk"
+      ? `Do you want to remove ${deleteTarget.count} selected asset${
+          deleteTarget.count === 1 ? "" : "s"
+        }?`
+      : `Do you want to remove ${deleteTarget?.name ?? "this asset"}?`;
 
   return (
     <>
@@ -264,6 +347,7 @@ export function AssetsSection() {
               onChange={(e) => {
                 setSearch(e.target.value);
                 setPage(1);
+                setSelectedIds(new Set());
               }}
               placeholder="Angkor"
               className={styles.assetSearchInput}
@@ -275,8 +359,40 @@ export function AssetsSection() {
           </button>
         </div>
 
+        {selectedCount > 0 && (
+          <div className={styles.memberBulkBar}>
+            <span className={styles.memberBulkCount}>{selectedCount} selected</span>
+            <div>
+              <button
+                type="button"
+                className={styles.memberBulkClearBtn}
+                onClick={clearSelection}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className={styles.memberBulkDeleteBtn}
+                onClick={openBulkDeleteModal}
+              >
+                <TrashIcon />
+                Delete selected
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className={styles.assetTableDesktop}>
           <div className={styles.assetTableColumns}>
+            <span>
+              <MemberSelectCheckbox
+                checked={allPageSelected}
+                indeterminate={somePageSelected}
+                onChange={toggleSelectAllPage}
+                disabled={pageIds.length === 0}
+                aria-label="Select all assets on this page"
+              />
+            </span>
             <span>No</span>
             <span>Asset Name</span>
             <span>Qty</span>
@@ -287,13 +403,29 @@ export function AssetsSection() {
           </div>
 
           <div className={styles.assetTableBody}>
-            {pageAssets.length === 0 ? (
+            {loading ? (
+              <p className={styles.memberEmpty}>Loading assets...</p>
+            ) : pageAssets.length === 0 ? (
               <p className={styles.memberEmpty}>No assets found.</p>
             ) : (
               pageAssets.map((asset) => {
                 const status = getAssetStatus(asset.qty);
+                const selected = selectedIds.has(asset.id);
+
                 return (
-                  <div key={asset.id} className={styles.assetTableRow}>
+                  <div
+                    key={asset.id}
+                    className={`${styles.assetTableRow} ${
+                      selected ? styles.memberTableRowSelected : ""
+                    }`}
+                  >
+                    <span>
+                      <MemberSelectCheckbox
+                        checked={selected}
+                        onChange={() => toggleSelect(asset.id)}
+                        aria-label={`Select ${asset.name}`}
+                      />
+                    </span>
                     <span className={styles.memberId}>{asset.no}</span>
                     <span className={styles.assetNamePill}>{asset.name}</span>
                     <span className={asset.qty === 0 ? styles.assetQtyZero : undefined}>
@@ -313,7 +445,7 @@ export function AssetsSection() {
                         type="button"
                         className={`${styles.actionBtn} ${styles.deleteBtn}`}
                         aria-label={`Delete ${asset.name}`}
-                        onClick={() => setDeleteTarget(asset)}
+                        onClick={() => openDeleteModal(asset)}
                       >
                         <TrashIcon />
                       </button>
@@ -334,14 +466,18 @@ export function AssetsSection() {
         </div>
 
         <div className={styles.assetCardsMobile}>
-          {pageAssets.length === 0 ? (
+          {loading ? (
+            <p className={styles.memberEmpty}>Loading assets...</p>
+          ) : pageAssets.length === 0 ? (
             <p className={styles.memberEmpty}>No assets found.</p>
           ) : (
             pageAssets.map((asset) => (
               <AssetCard
                 key={asset.id}
                 asset={asset}
-                onDelete={setDeleteTarget}
+                selected={selectedIds.has(asset.id)}
+                onToggleSelect={toggleSelect}
+                onDelete={openDeleteModal}
                 onEdit={openUpdateModal}
               />
             ))
@@ -428,7 +564,8 @@ export function AssetsSection() {
 
       <DeleteAssetModal
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        title={deleteModalTitle}
+        onClose={closeDeleteModal}
         onConfirm={confirmDelete}
       />
     </>

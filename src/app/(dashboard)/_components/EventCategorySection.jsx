@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { eventCategories as initialCategories } from "../_data/overviewData";
+import { useEffect, useState } from "react";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import styles from "./dashboard.module.css";
 import { CreateCategoryModal } from "./CreateCategoryModal";
 import { DeleteCategoryModal } from "./DeleteCategoryModal";
@@ -33,7 +34,19 @@ function formatToday() {
 }
 
 export function EventCategorySection() {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const reloadCategories = async () => {
+    const data = await apiGet("/api/event-categories");
+    setCategories(data);
+  };
+
+  useEffect(() => {
+    reloadCategories()
+      .catch(() => setCategories([]))
+      .finally(() => setLoading(false));
+  }, []);
   const [modalOpen, setModalOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [error, setError] = useState("");
@@ -54,7 +67,7 @@ export function EventCategorySection() {
     setError("");
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const trimmed = categoryName.trim();
     if (!trimmed) {
       setError("Category name is required");
@@ -65,25 +78,14 @@ export function EventCategorySection() {
       return;
     }
 
-    setCategories((prev) => [
-      ...prev,
-      {
-        id: `cat-${Date.now()}`,
-        no: prev.length + 1,
-        name: trimmed,
-        createdAt: formatToday(),
-        createdBy: "Thomas Brown",
-      },
-    ]);
+    await apiSend("/api/event-categories", "POST", {
+      name: trimmed,
+      createdAt: formatToday(),
+      createdBy: "Thomas Brown",
+    });
+    await reloadCategories();
     closeModal();
-  };
-
-  const handleDelete = (id) => {
-    setCategories((prev) =>
-      prev
-        .filter((row) => row.id !== id)
-        .map((row, index) => ({ ...row, no: index + 1 })),
-    );
+    notifyCreated("Category");
   };
 
   const openDeleteModal = (row) => {
@@ -94,9 +96,11 @@ export function EventCategorySection() {
     setDeleteTarget(null);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTarget) {
-      handleDelete(deleteTarget.id);
+      await apiSend(`/api/event-categories/${deleteTarget.id}`, "DELETE");
+      await reloadCategories();
+      notifyDeleted("Category");
     }
     closeDeleteModal();
   };
@@ -113,7 +117,7 @@ export function EventCategorySection() {
     setUpdateError("");
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const trimmed = updateName.trim();
     if (!trimmed) {
       setUpdateError("Category name is required");
@@ -130,12 +134,12 @@ export function EventCategorySection() {
       return;
     }
 
-    setCategories((prev) =>
-      prev.map((row) =>
-        row.id === updateTarget?.id ? { ...row, name: trimmed } : row,
-      ),
-    );
+    await apiSend(`/api/event-categories/${updateTarget?.id}`, "PATCH", {
+      name: trimmed,
+    });
+    await reloadCategories();
     closeUpdateModal();
+    notifyUpdated("Category");
   };
 
   return (
@@ -157,7 +161,12 @@ export function EventCategorySection() {
         </div>
 
         <div className={styles.tableBody}>
-          {categories.map((row) => (
+          {loading ? (
+            <p className={styles.memberEmpty}>Loading categories...</p>
+          ) : categories.length === 0 ? (
+            <p className={styles.memberEmpty}>No categories yet.</p>
+          ) : (
+          categories.map((row) => (
             <div key={row.id} className={styles.tableRow}>
               <span>{row.no}</span>
               <span>{row.name}</span>
@@ -182,7 +191,7 @@ export function EventCategorySection() {
                 </button>
               </div>
             </div>
-          ))}
+          )))}
         </div>
       </div>
 

@@ -160,26 +160,39 @@ export function CreateEventModal({ open, categories, editEvent, onClose, onSave,
     return Object.keys(next).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
+
+    const image =
+      form.imagePreview?.startsWith("blob:") || !form.imagePreview
+        ? "/images/festival.png"
+        : form.imagePreview;
+
     const payload = {
       title: form.eventName.trim(),
       category: form.category,
       startDate: form.startDateTime,
       endDate: form.endDateTime,
-      duration: form.duration.trim(),
-      maxAttendee: form.maxAttendee ? Number(form.maxAttendee) : null,
+      duration: form.duration.trim() || "TBD",
+      maxAttendee: form.maxAttendee ? Number(form.maxAttendee) : 0,
       address: form.address.trim(),
       description: form.description.trim(),
-      image: form.imagePreview || "/images/festival.png",
+      image,
       isPublic: form.isPublic,
     };
-    if (isEditing) {
-      onUpdate(editEvent.id, payload);
-    } else {
-      onSave(payload);
+
+    try {
+      if (isEditing) {
+        await onUpdate(editEvent.id, payload);
+      } else {
+        await onSave(payload);
+      }
+      onClose();
+    } catch (error) {
+      setErrors({
+        submit: error instanceof Error ? error.message : "Failed to save event",
+      });
     }
-    onClose();
   };
 
   return (
@@ -399,6 +412,8 @@ export function CreateEventModal({ open, categories, editEvent, onClose, onSave,
             </div>
           </div>
         </div>
+
+        {errors.submit && <p className={styles.modalError}>{errors.submit}</p>}
 
         <div className={styles.modalFooter}>
           <button type="button" className={styles.modalCancelBtn} onClick={onClose}>

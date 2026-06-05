@@ -444,7 +444,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 44px;
+  height: 35px;
   padding: 0 20px;
   border: none;
   border-radius: 10px;
@@ -1848,9 +1848,145 @@
   box-shadow: 0 0 0 3px rgba(121, 57, 239, 0.12);
 }
 
+.memberBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 20px 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f4ebff;
+  border: 1px solid #e9d5ff;
+}
+
+.memberBulkCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5925dc;
+}
+
+.memberBulkDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #d92d20;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.memberBulkDeleteBtn:hover {
+  background: #b42318;
+}
+
+.memberBulkClearBtn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #5925dc;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.memberBulkClearBtn:hover {
+  background: rgba(121, 57, 239, 0.08);
+}
+
+.memberCheckboxLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.memberCheckboxLabelDisabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.memberCheckboxInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.memberCheckboxBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #d0d5dd;
+  background: #ffffff;
+  color: #ffffff;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.memberCheckboxLabel:hover .memberCheckboxBox:not(.memberCheckboxBoxChecked):not(
+    .memberCheckboxBoxIndeterminate
+  ) {
+  border-color: #98a2b3;
+}
+
+.memberCheckboxLabel:focus-within .memberCheckboxBox {
+  box-shadow: 0 0 0 3px rgba(121, 57, 239, 0.18);
+}
+
+.memberCheckboxBoxChecked {
+  border-color: #7939ef;
+  background: #7939ef;
+}
+
+.memberCheckboxBoxIndeterminate {
+  border-color: #7939ef;
+  background: #7939ef;
+}
+
+.memberCheckboxLabelDisabled .memberCheckboxBox {
+  background: #f9fafb;
+  border-color: #eaecf0;
+}
+
+.memberTableRowSelected {
+  outline: 2px solid rgba(121, 57, 239, 0.35);
+  outline-offset: -2px;
+}
+
+.memberCardSelectRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.memberTableColumns > span:first-child,
+.memberTableRow > span:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .memberTableColumns {
   display: grid;
-  grid-template-columns: 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
+  grid-template-columns: 40px 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
   gap: 12px;
   padding: 0 20px 12px;
   font-size: 12px;
@@ -1869,7 +2005,7 @@
 
 .memberTableRow {
   display: grid;
-  grid-template-columns: 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
+  grid-template-columns: 40px 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
   gap: 12px;
   align-items: center;
   padding: 16px 20px;
@@ -2279,9 +2415,16 @@
   box-shadow: 0 0 0 3px rgba(121, 57, 239, 0.12);
 }
 
+.assetTableColumns > span:first-child,
+.assetTableRow > span:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .assetTableColumns {
   display: grid;
-  grid-template-columns: 56px 1.2fr 0.6fr 0.7fr 1fr 110px 100px;
+  grid-template-columns: 40px 56px 1.2fr 0.6fr 0.7fr 1fr 110px 100px;
   gap: 12px;
   padding: 0 20px 12px;
   font-size: 12px;
@@ -2299,7 +2442,7 @@
 
 .assetTableRow {
   display: grid;
-  grid-template-columns: 56px 1.2fr 0.6fr 0.7fr 1fr 110px 100px;
+  grid-template-columns: 40px 56px 1.2fr 0.6fr 0.7fr 1fr 110px 100px;
   gap: 12px;
   align-items: center;
   padding: 16px 20px;
@@ -2369,6 +2512,11 @@
   display: none;
   flex-direction: column;
   gap: 14px;
+}
+
+.assetCardSelected {
+  outline: 2px solid rgba(121, 57, 239, 0.35);
+  outline-offset: -2px;
 }
 
 .assetCard {
@@ -2565,6 +2713,63 @@
   color: #101828;
 }
 
+.registrationHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.registrationFormTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.registrationFormStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.registrationCard {
+  padding: 20px 22px 22px;
+  border: 1px solid #eaecf0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.registrationSubtitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.registrationSubtitleRow .registrationSubtitle {
+  margin: 0;
+  flex: 1;
+}
+
+.registrationRemoveBlockBtn {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f04438;
+  cursor: pointer;
+}
+
+.registrationRemoveBlockBtn:hover {
+  background: #fef3f2;
+}
+
 .registrationBlock + .registrationBlock {
   margin-top: 28px;
 }
@@ -2603,13 +2808,34 @@
 .registrationField select {
   box-sizing: border-box;
   width: 100%;
-  height: 48px;
-  padding: 0 16px;
+  height: 44px;
+  padding: 0 14px;
   border: 1px solid #d0d5dd;
-  border-radius: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #101828;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.registrationField input::placeholder {
+  color: #98a2b3;
+}
+
+.registrationField input:focus,
+.registrationField select:focus {
+  border-color: #7939ef;
+  box-shadow: 0 0 0 3px rgba(121, 57, 239, 0.12);
+}
+
+.registrationField input:disabled,
+.registrationField select:disabled {
   background: #f9fafb;
-  font-size: 15px;
   color: #667085;
+  cursor: not-allowed;
 }
 
 .materialStatsGrid {

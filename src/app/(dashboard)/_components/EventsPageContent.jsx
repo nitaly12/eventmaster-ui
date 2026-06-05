@@ -4,11 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import {
-  dashboardEvents,
-  eventCategoryOptions,
-  eventStatusOptions,
-} from "../_data/eventsData";
+import { eventStatusOptions } from "../_data/eventsData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { CreateEventModal } from "./CreateEventModal";
 import { DeleteEventModal } from "./DeleteEventModal";
 import { DashboardHeader } from "./DashboardHeader";
@@ -134,10 +132,31 @@ function DashboardEventCard({ event, onUpdate, onDelete }) {
 export function EventsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [events, setEvents] = useState(dashboardEvents);
+  const [events, setEvents] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const reloadEvents = async () => {
+    const data = await apiGet("/api/events");
+    setEvents(data);
+  };
+
+  useEffect(() => {
+    Promise.all([apiGet("/api/events"), apiGet("/api/event-categories")])
+      .then(([eventData, categories]) => {
+        setEvents(eventData);
+        setCategoryOptions(categories.map((c) => c.name));
+      })
+      .catch(() => {
+        setEvents([]);
+        setCategoryOptions([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [saveError, setSaveError] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [startDateFilter, setStartDateFilter] = useState("");
@@ -192,26 +211,28 @@ export function EventsPageContent() {
     }
   };
 
-  const handleSave = (data) => {
-    setEvents((prev) => [
-      {
-        id: `evt-${Date.now()}`,
-        status: "Open",
-        ...data,
-      },
-      ...prev,
-    ]);
+  const handleSave = async (data) => {
+    setSaveError("");
+    await apiSend("/api/events", "POST", {
+      status: "Open",
+      ...data,
+    });
+    await reloadEvents();
+    notifyCreated("Event");
   };
 
-  const handleUpdate = (id, data) => {
-    setEvents((prev) =>
-      prev.map((event) => (event.id === id ? { ...event, ...data } : event)),
-    );
+  const handleUpdate = async (id, data) => {
+    setSaveError("");
+    await apiSend(`/api/events/${id}`, "PATCH", data);
+    await reloadEvents();
+    notifyUpdated("Event");
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTarget) {
-      setEvents((prev) => prev.filter((event) => event.id !== deleteTarget.id));
+      await apiSend(`/api/events/${deleteTarget.id}`, "DELETE");
+      await reloadEvents();
+      notifyDeleted("Event");
     }
     setDeleteTarget(null);
   };
@@ -234,7 +255,7 @@ export function EventsPageContent() {
               className={styles.eventsFilterSelect}
             >
                 <option value="">Choose category</option>
-                {eventCategoryOptions.map((category) => (
+                {categoryOptions.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -291,7 +312,9 @@ export function EventsPageContent() {
         </div>
       </div>
 
-      {filteredEvents.length === 0 ? (
+      {loading ? (
+        <p className={styles.eventsEmpty}>Loading events...</p>
+      ) : filteredEvents.length === 0 ? (
         <p className={styles.eventsEmpty}>No events match your filters.</p>
       ) : (
         <div className={styles.eventsGrid}>
@@ -308,13 +331,40 @@ export function EventsPageContent() {
 
       </div>
 
+      {saveError && (
+        <p className={styles.memberEmpty} role="alert">
+          {saveError}
+        </p>
+      )}
+
       <CreateEventModal
         open={modalOpen || Boolean(editTarget)}
         editEvent={editTarget}
-        categories={eventCategoryOptions}
-        onClose={closeModal}
-        onSave={handleSave}
-        onUpdate={handleUpdate}
+        categories={categoryOptions}
+        onClose={() => {
+          setSaveError("");
+          closeModal();
+        }}
+        onSave={async (data) => {
+          try {
+            await handleSave(data);
+          } catch (error) {
+            setSaveError(
+              error instanceof Error ? error.message : "Failed to create event",
+            );
+            throw error;
+          }
+        }}
+        onUpdate={async (id, data) => {
+          try {
+            await handleUpdate(id, data);
+          } catch (error) {
+            setSaveError(
+              error instanceof Error ? error.message : "Failed to update event",
+            );
+            throw error;
+          }
+        }}
       />
 
       <DeleteEventModal

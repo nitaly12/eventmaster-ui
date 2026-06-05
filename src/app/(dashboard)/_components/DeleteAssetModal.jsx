@@ -19,7 +19,12 @@ function CloseIcon() {
   );
 }
 
-export function DeleteAssetModal({ open, onClose, onConfirm }) {
+export function DeleteAssetModal({
+  open,
+  title = "Do you want to remove this asset?",
+  onClose,
+  onConfirm,
+}) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e) => {
@@ -61,7 +66,7 @@ export function DeleteAssetModal({ open, onClose, onConfirm }) {
         </div>
 
         <h2 id="delete-asset-title" className={styles.deleteModalTitle}>
-          Do you want to remove this asset?
+          {title}
         </h2>
 
         <div className={styles.deleteModalActions}>

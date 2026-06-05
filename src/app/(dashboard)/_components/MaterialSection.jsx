@@ -11,6 +11,8 @@ import {
   computeMaterialStats,
   renumberMaterials,
 } from "../_data/materialData";
+import { apiSend } from "@/lib/client-api";
+import { notifyCreated, notifyDeleted } from "@/lib/toast";
 import styles from "./dashboard.module.css";
 
 function SearchIcon() {
@@ -443,12 +445,41 @@ function MaterialStatCard({ label, value, icon, variant }) {
   );
 }
 
-export function MaterialSection({ initialMaterials }) {
+export function MaterialSection({ eventId, initialMaterials }) {
   const [materials, setMaterials] = useState(initialMaterials);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [saveError, setSaveError] = useState("");
+  const skipPersistRef = useRef(true);
+  const pendingToastRef = useRef(null);
 
   const stats = useMemo(() => computeMaterialStats(materials), [materials]);
+
+  useEffect(() => {
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      try {
+        setSaveError("");
+        await apiSend(`/api/events/${eventId}/materials`, "PUT", { materials });
+        if (pendingToastRef.current === "create") {
+          notifyCreated("Material");
+        } else if (pendingToastRef.current) {
+          notifyDeleted(pendingToastRef.current);
+        }
+        pendingToastRef.current = null;
+      } catch (error) {
+        setSaveError(
+          error instanceof Error ? error.message : "Failed to save materials",
+        );
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [materials, eventId]);
 
   const filteredMaterials = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -470,6 +501,8 @@ export function MaterialSection({ initialMaterials }) {
   };
 
   const deleteMaterials = (ids) => {
+    pendingToastRef.current =
+      ids.length > 1 ? `${ids.length} materials` : "Material";
     setMaterials((prev) => renumberMaterials(prev.filter((item) => !ids.includes(item.id))));
     setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
   };
@@ -509,12 +542,18 @@ export function MaterialSection({ initialMaterials }) {
       status: "Pending",
       note: "",
     };
+    pendingToastRef.current = "create";
     setMaterials((prev) => [...prev, newItem]);
   };
 
   return (
     <section className={styles.eventDetailSection}>
       <h3 className={styles.eventDetailSectionTitle}>Material Management</h3>
+      {saveError && (
+        <p className={styles.modalError} role="alert">
+          {saveError}
+        </p>
+      )}
 
       <div className={styles.materialStatsGrid}>
         <MaterialStatCard

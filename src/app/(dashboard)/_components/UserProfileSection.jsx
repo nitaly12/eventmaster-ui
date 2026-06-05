@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
-import {
-  USER_GENDER_OPTIONS,
-  defaultUserProfile,
-} from "../_data/organizationSettingsData";
+import { useEffect, useRef, useState } from "react";
+import { defaultUserProfile } from "../_data/organizationSettingsData";
+import { apiGet, apiSend, apiUpload } from "@/lib/client-api";
+import { notifyUpdated } from "@/lib/toast";
 import { AccountSettingsNav } from "./AccountSettingsNav";
 import styles from "./dashboard.module.css";
 
@@ -142,33 +141,136 @@ function PasswordField({ id, label, value, onChange, visible, onToggle }) {
   );
 }
 
+const EMPTY_PASSWORDS = {
+  current: "",
+  newPassword: "",
+  confirm: "",
+};
+
 export function UserProfileSection() {
   const [form, setForm] = useState(defaultUserProfile);
   const [saved, setSaved] = useState(defaultUserProfile);
-  const [showPasswordSection, setShowPasswordSection] = useState(true);
-  const [passwords, setPasswords] = useState({
-    current: "••••••••",
-    newPassword: "••••••••",
-    confirm: "••••••••",
-  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [passwords, setPasswords] = useState(EMPTY_PASSWORDS);
   const [passwordVisible, setPasswordVisible] = useState({
     current: false,
     newPassword: false,
     confirm: false,
   });
+  const avatarInputRef = useRef(null);
+  const pendingAvatarFileRef = useRef(null);
+  const avatarPreviewRef = useRef("");
 
-  const handleSave = () => {
-    setSaved({ ...form });
+  useEffect(() => {
+    apiGet("/api/user-profile")
+      .then((data) => {
+        setForm(data);
+        setSaved(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewRef.current?.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreviewRef.current);
+      }
+    };
+  }, []);
+
+  const handleAvatarChange = (file) => {
+    if (!file?.type.startsWith("image/")) return;
+
+    if (avatarPreviewRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreviewRef.current);
+    }
+
+    const preview = URL.createObjectURL(file);
+    avatarPreviewRef.current = preview;
+    pendingAvatarFileRef.current = file;
+    setForm((prev) => ({ ...prev, avatar: preview }));
+  };
+
+  const handleSave = async () => {
+    setSaveError("");
+
+    if (!form.name.trim()) {
+      setSaveError("Name is required");
+      return;
+    }
+    if (!form.gender.trim()) {
+      setSaveError("Gender is required");
+      return;
+    }
+    if (!form.email.trim()) {
+      setSaveError("Email is required");
+      return;
+    }
+    if (!form.date) {
+      setSaveError("Date is required");
+      return;
+    }
+    if (!form.phone.trim()) {
+      setSaveError("Phone number is required");
+      return;
+    }
+    if (!form.address.trim()) {
+      setSaveError("Address is required");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      let avatarUrl = saved.avatar;
+      if (pendingAvatarFileRef.current) {
+        const upload = await apiUpload("/api/user-profile/avatar", "avatar", pendingAvatarFileRef.current);
+        avatarUrl = upload.avatar;
+      }
+
+      const payload = {
+        ...form,
+        avatar: avatarUrl,
+      };
+
+      const data = await apiSend("/api/user-profile", "PATCH", payload);
+      setSaved(data);
+      setForm(data);
+      pendingAvatarFileRef.current = null;
+      if (avatarPreviewRef.current?.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreviewRef.current);
+        avatarPreviewRef.current = "";
+      }
+      window.dispatchEvent(new CustomEvent("user-profile-updated", { detail: data }));
+      notifyUpdated("Profile");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
+    if (avatarPreviewRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreviewRef.current);
+      avatarPreviewRef.current = "";
+    }
+    pendingAvatarFileRef.current = null;
     setForm({ ...saved });
-    setPasswords({
-      current: "••••••••",
-      newPassword: "••••••••",
-      confirm: "••••••••",
-    });
+    setSaveError("");
+    setShowPasswordSection(false);
+    setPasswords(EMPTY_PASSWORDS);
   };
+
+  if (loading) {
+    return <p className={styles.memberEmpty}>Loading profile...</p>;
+  }
+
+  const avatarSrc = form.avatar || saved.avatar || defaultUserProfile.avatar;
 
   return (
     <div className={styles.userProfileCard}>
@@ -176,14 +278,27 @@ export function UserProfileSection() {
         <aside className={styles.userProfileAside}>
           <div className={styles.userProfileAvatarWrap}>
             <Image
-              src={form.avatar}
+              src={avatarSrc}
               alt={form.name}
               width={160}
               height={160}
               className={styles.userProfileAvatar}
               priority
+              unoptimized={avatarSrc.startsWith("blob:")}
             />
-            <button type="button" className={styles.userProfileAvatarEdit} aria-label="Change photo">
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className={styles.uploadInput}
+              onChange={(e) => handleAvatarChange(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              className={styles.userProfileAvatarEdit}
+              aria-label="Change photo"
+              onClick={() => avatarInputRef.current?.click()}
+            >
               <CameraIcon />
             </button>
           </div>
@@ -203,7 +318,9 @@ export function UserProfileSection() {
                 id="user-name"
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, name: e.target.value }));
+                }}
                 className={styles.accountFormInput}
               />
             </div>
@@ -212,18 +329,15 @@ export function UserProfileSection() {
               <label htmlFor="user-gender" className={styles.accountFormLabel}>
                 Gender<span className={styles.requiredMark}>*</span>
               </label>
-              <select
+              <input
                 id="user-gender"
+                type="text"
                 value={form.gender}
-                onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
-                className={`${styles.accountFormInput} ${styles.accountFormSelect}`}
-              >
-                {USER_GENDER_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, gender: e.target.value }));
+                }}
+                className={styles.accountFormInput}
+              />
             </div>
 
             <div className={styles.accountFormField}>
@@ -234,7 +348,9 @@ export function UserProfileSection() {
                 id="user-email"
                 type="email"
                 value={form.email}
-                onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, email: e.target.value }));
+                }}
                 className={styles.accountFormInput}
               />
             </div>
@@ -248,7 +364,9 @@ export function UserProfileSection() {
                   id="user-date"
                   type="date"
                   value={form.date}
-                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => {
+                    setForm((prev) => ({ ...prev, date: e.target.value }));
+                  }}
                   className={`${styles.accountFormInput} ${styles.accountFormDate}`}
                 />
                 <span className={styles.accountDateIcon} aria-hidden>
@@ -265,7 +383,9 @@ export function UserProfileSection() {
                 id="user-phone"
                 type="text"
                 value={form.phone}
-                onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, phone: e.target.value }));
+                }}
                 className={styles.accountFormInput}
               />
             </div>
@@ -278,7 +398,9 @@ export function UserProfileSection() {
                 id="user-address"
                 type="text"
                 value={form.address}
-                onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, address: e.target.value }));
+                }}
                 className={styles.accountFormInput}
               />
             </div>
@@ -330,15 +452,26 @@ export function UserProfileSection() {
             </div>
           )}
 
+          {saveError && (
+            <p className={styles.modalError} role="alert">
+              {saveError}
+            </p>
+          )}
+
           <div className={styles.userProfileFooter}>
             <button type="button" className={styles.accountCancelBtn} onClick={handleCancel}>
               Cancel
             </button>
-            <button type="button" className={styles.userProfileSaveBtn} onClick={handleSave}>
+            <button
+              type="button"
+              className={styles.userProfileSaveBtn}
+              onClick={handleSave}
+              disabled={saving}
+            >
               <span className={styles.modalCreateIcon}>
                 <PlusIcon />
               </span>
-              Save
+              {saving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>

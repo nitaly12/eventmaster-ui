@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { getAgendaAccent } from "../_data/agendaData";
+import { apiSend } from "@/lib/client-api";
+import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { CreateAgendaForm } from "./CreateAgendaForm";
 import { DeleteEventModal } from "./DeleteEventModal";
 import styles from "./dashboard.module.css";
@@ -76,30 +78,60 @@ function AgendaViewItem({ item, index }) {
   );
 }
 
-export function AgendaSection({ initialAgenda }) {
+export function AgendaSection({ eventId, initialAgenda }) {
   const [agenda, setAgenda] = useState(initialAgenda);
   const [showAgendaForm, setShowAgendaForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  const handleSaveAgenda = (items) => {
+  const persistAgenda = async (items) => {
+    await apiSend(`/api/events/${eventId}/agenda`, "PUT", { items });
+  };
+
+  const handleSaveAgenda = async (items) => {
     const withAccents = items.map((item, index) => ({
       ...item,
       accent: item.accent ?? getAgendaAccent(index),
     }));
-    setAgenda(withAccents);
-    setShowAgendaForm(false);
+    try {
+      setSaveError("");
+      await persistAgenda(withAccents);
+      const isNewAgenda = agenda.length === 0;
+      setAgenda(withAccents);
+      setShowAgendaForm(false);
+      if (isNewAgenda) {
+        notifyCreated("Agenda");
+      } else {
+        notifyUpdated("Agenda");
+      }
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save agenda");
+    }
   };
 
-  const confirmDeleteAgenda = () => {
-    setAgenda([]);
-    setShowAgendaForm(false);
-    setShowDeleteModal(false);
+  const confirmDeleteAgenda = async () => {
+    try {
+      setSaveError("");
+      await persistAgenda([]);
+      setAgenda([]);
+      setShowAgendaForm(false);
+      setShowDeleteModal(false);
+      notifyDeleted("Agenda");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to delete agenda");
+    }
   };
 
   const hasAgenda = agenda.length > 0;
 
   return (
     <section className={styles.eventDetailSection}>
+      {saveError && (
+        <p className={styles.modalError} role="alert">
+          {saveError}
+        </p>
+      )}
+
       <div className={styles.agendaHeader}>
         <h3 className={styles.eventDetailSectionTitle}>Agenda Management</h3>
         {hasAgenda && !showAgendaForm && (

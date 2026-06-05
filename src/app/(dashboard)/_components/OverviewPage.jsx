@@ -1,4 +1,3 @@
-import { statsCards } from "../_data/overviewData";
 import styles from "./dashboard.module.css";
 import { OverviewChart } from "./OverviewChart";
 import { EventCategorySection } from "./EventCategorySection";
@@ -36,7 +35,7 @@ function StatIcon({ type }) {
   return icons[type] ?? icons.calendar;
 }
 
-export function OverviewPage() {
+export function OverviewPage({ statsCards = [] }) {
   return (
     <>
       <div className={styles.statsGrid}>

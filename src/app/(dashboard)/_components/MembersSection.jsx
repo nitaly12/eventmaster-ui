@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { MEMBERS_PAGE_SIZE, members as initialMembers } from "../_data/membersData";
+import { useEffect, useMemo, useState } from "react";
+import { MEMBERS_PAGE_SIZE } from "../_data/membersData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
+import { MemberSelectCheckbox } from "./MemberSelectCheckbox";
 import { RoleDropdown } from "./RoleDropdown";
 import styles from "./dashboard.module.css";
 
@@ -38,6 +41,10 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+function isDeletable(member) {
+  return member.role !== "Admin";
+}
+
 function MemberAvatar({ name, avatar, size = 36 }) {
   if (avatar) {
     return (
@@ -65,12 +72,28 @@ function MemberAvatar({ name, avatar, size = 36 }) {
 
 function MemberCard({
   member,
+  selected,
+  onToggleSelect,
   onRoleChange,
   onDelete,
 }) {
+  const canSelect = isDeletable(member);
+
   return (
-    <article className={styles.memberCard}>
-      <span className={styles.memberCardId}>{member.id}</span>
+    <article
+      className={`${styles.memberCard} ${selected ? styles.memberTableRowSelected : ""}`}
+    >
+      {canSelect && (
+        <div className={styles.memberCardSelectRow}>
+          <MemberSelectCheckbox
+            checked={selected}
+            onChange={() => onToggleSelect(member.id)}
+            aria-label={`Select ${member.name}`}
+          />
+          <span className={styles.memberCardId}>{member.id}</span>
+        </div>
+      )}
+      {!canSelect && <span className={styles.memberCardId}>{member.id}</span>}
 
       <div className={styles.memberCardProfile}>
         <MemberAvatar name={member.name} avatar={member.avatar} size={40} />
@@ -90,7 +113,7 @@ function MemberCard({
             onChange={(role) => onRoleChange(member.id, role)}
           />
         </div>
-        {member.role !== "Admin" && (
+        {canSelect && (
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.deleteBtn} ${styles.memberCardDelete}`}
@@ -124,10 +147,19 @@ function buildPageNumbers(current, total) {
 }
 
 export function MembersSection() {
-  const [members, setMembers] = useState(initialMembers);
+  const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGet("/api/members")
+      .then((data) => setMembers(data))
+      .catch(() => setMembers([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -143,164 +175,296 @@ export function MembersSection() {
     return filtered.slice(start, start + MEMBERS_PAGE_SIZE);
   }, [filtered, currentPage]);
 
+  const pageDeletableIds = useMemo(
+    () => pageMembers.filter(isDeletable).map((member) => member.id),
+    [pageMembers],
+  );
+
+  const selectedCount = selectedIds.size;
+
+  const allPageSelected =
+    pageDeletableIds.length > 0 &&
+    pageDeletableIds.every((id) => selectedIds.has(id));
+
+  const somePageSelected =
+    pageDeletableIds.some((id) => selectedIds.has(id)) && !allPageSelected;
+
   const pageNumbers = buildPageNumbers(currentPage, totalPages);
 
   const handleSearchChange = (value) => {
     setSearch(value);
     setPage(1);
+    setSelectedIds(new Set());
   };
 
-  const handleRoleChange = (id, role) => {
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) {
+        pageDeletableIds.forEach((id) => next.delete(id));
+      } else {
+        pageDeletableIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const handleRoleChange = async (id, role) => {
+    await apiSend(`/api/members/${id}`, "PATCH", { role });
     setMembers((prev) =>
       prev.map((member) => (member.id === id ? { ...member, role } : member)),
     );
-  };
-
-  const handleDelete = (id) => {
-    setMembers((prev) => prev.filter((member) => member.id !== id));
+    notifyUpdated("Member role");
   };
 
   const openDeleteModal = (member) => {
-    setDeleteTarget({ id: member.id, name: member.name });
+    setDeleteTarget({ mode: "single", id: member.id, name: member.name });
+  };
+
+  const openBulkDeleteModal = () => {
+    const count = selectedIds.size;
+    setDeleteTarget({ mode: "bulk", ids: [...selectedIds], count });
   };
 
   const closeDeleteModal = () => {
     setDeleteTarget(null);
   };
 
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      handleDelete(deleteTarget.id);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.mode === "single") {
+      await apiSend(`/api/members/${deleteTarget.id}`, "DELETE");
+      setMembers((prev) => prev.filter((member) => member.id !== deleteTarget.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
+    } else {
+      await apiSend("/api/members", "DELETE", { ids: deleteTarget.ids });
+      const idSet = new Set(deleteTarget.ids);
+      setMembers((prev) => prev.filter((member) => !idSet.has(member.id)));
+      clearSelection();
     }
+
+    const toastLabel =
+      deleteTarget.mode === "bulk"
+        ? `${deleteTarget.ids.length} member${deleteTarget.ids.length === 1 ? "" : "s"}`
+        : "Member";
     closeDeleteModal();
+    notifyDeleted(toastLabel);
   };
+
+  const deleteModalTitle =
+    deleteTarget?.mode === "bulk"
+      ? `Are you sure you want to remove ${deleteTarget.count} selected member${
+          deleteTarget.count === 1 ? "" : "s"
+        }?`
+      : `Are you sure you want to remove ${deleteTarget?.name ?? "this member"}?`;
 
   return (
     <>
-    <div className={`${styles.tableCard} ${styles.memberPageCard}`}>
-      <div className={styles.tableHeader}>
-        <h2 className={styles.tableTitle}>Show All Members</h2>
-        <div className={styles.memberSearchWrap}>
-          <span className={styles.memberSearchIcon}>
-            <SearchIcon />
-          </span>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search by name"
-            className={styles.memberSearchInput}
-            aria-label="Search by name"
-          />
-        </div>
-      </div>
-
-      <div className={styles.memberTableDesktop}>
-        <div className={styles.memberTableColumns}>
-          <span>ID</span>
-          <span>Name</span>
-          <span>Gender</span>
-          <span>Email</span>
-          <span>Address</span>
-          <span>Role</span>
-          <span>Action</span>
+      <div className={`${styles.tableCard} ${styles.memberPageCard}`}>
+        <div className={styles.tableHeader}>
+          <h2 className={styles.tableTitle}>Show All Members</h2>
+          <div className={styles.memberSearchWrap}>
+            <span className={styles.memberSearchIcon}>
+              <SearchIcon />
+            </span>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by name"
+              className={styles.memberSearchInput}
+              aria-label="Search by name"
+            />
+          </div>
         </div>
 
-        <div className={styles.memberTableBody}>
-          {pageMembers.length === 0 ? (
+        {selectedCount > 0 && (
+          <div className={styles.memberBulkBar}>
+            <span className={styles.memberBulkCount}>
+              {selectedCount} selected
+            </span>
+            <div>
+              <button
+                type="button"
+                className={styles.memberBulkClearBtn}
+                onClick={clearSelection}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className={styles.memberBulkDeleteBtn}
+                onClick={openBulkDeleteModal}
+              >
+                <TrashIcon />
+                Delete selected
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={styles.memberTableDesktop}>
+          <div className={styles.memberTableColumns}>
+            <span>
+              <MemberSelectCheckbox
+                checked={allPageSelected}
+                indeterminate={somePageSelected}
+                onChange={toggleSelectAllPage}
+                disabled={pageDeletableIds.length === 0}
+                aria-label="Select all members on this page"
+              />
+            </span>
+            <span>ID</span>
+            <span>Name</span>
+            <span>Gender</span>
+            <span>Email</span>
+            <span>Address</span>
+            <span>Role</span>
+            <span>Action</span>
+          </div>
+
+          <div className={styles.memberTableBody}>
+            {loading ? (
+              <p className={styles.memberEmpty}>Loading members...</p>
+            ) : pageMembers.length === 0 ? (
+              <p className={styles.memberEmpty}>No members found.</p>
+            ) : (
+              pageMembers.map((member) => {
+                const canSelect = isDeletable(member);
+                const selected = selectedIds.has(member.id);
+
+                return (
+                  <div
+                    key={member.id}
+                    className={`${styles.memberTableRow} ${
+                      selected ? styles.memberTableRowSelected : ""
+                    }`}
+                  >
+                    <span>
+                      {canSelect ? (
+                        <MemberSelectCheckbox
+                          checked={selected}
+                          onChange={() => toggleSelect(member.id)}
+                          aria-label={`Select ${member.name}`}
+                        />
+                      ) : null}
+                    </span>
+                    <span className={styles.memberId}>{member.id}</span>
+                    <div className={styles.memberNameCell}>
+                      <MemberAvatar name={member.name} avatar={member.avatar} />
+                      <span>{member.name}</span>
+                    </div>
+                    <span>{member.gender}</span>
+                    <span className={styles.memberEmail}>{member.email}</span>
+                    <span className={styles.memberAddress}>{member.address}</span>
+                    <RoleDropdown
+                      role={member.role}
+                      onChange={(role) => handleRoleChange(member.id, role)}
+                    />
+                    <div className={styles.actionCell}>
+                      {canSelect && (
+                        <button
+                          type="button"
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          aria-label={`Delete ${member.name}`}
+                          onClick={() => openDeleteModal(member)}
+                        >
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className={styles.memberCardsMobile}>
+          {loading ? (
+            <p className={styles.memberEmpty}>Loading members...</p>
+          ) : pageMembers.length === 0 ? (
             <p className={styles.memberEmpty}>No members found.</p>
           ) : (
             pageMembers.map((member) => (
-              <div key={member.id} className={styles.memberTableRow}>
-                <span className={styles.memberId}>{member.id}</span>
-                <div className={styles.memberNameCell}>
-                  <MemberAvatar name={member.name} avatar={member.avatar} />
-                  <span>{member.name}</span>
-                </div>
-                <span>{member.gender}</span>
-                <span className={styles.memberEmail}>{member.email}</span>
-                <span className={styles.memberAddress}>{member.address}</span>
-                <RoleDropdown
-                  role={member.role}
-                  onChange={(role) => handleRoleChange(member.id, role)}
-                />
-                <div className={styles.actionCell}>
-                  {member.role !== "Admin" && (
-                    <button
-                      type="button"
-                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                      aria-label={`Delete ${member.name}`}
-                      onClick={() => openDeleteModal(member)}
-                    >
-                      <TrashIcon />
-                    </button>
-                  )}
-                </div>
-              </div>
+              <MemberCard
+                key={member.id}
+                member={member}
+                selected={selectedIds.has(member.id)}
+                onToggleSelect={toggleSelect}
+                onRoleChange={handleRoleChange}
+                onDelete={openDeleteModal}
+              />
             ))
           )}
         </div>
-      </div>
 
-      <div className={styles.memberCardsMobile}>
-        {pageMembers.length === 0 ? (
-          <p className={styles.memberEmpty}>No members found.</p>
-        ) : (
-          pageMembers.map((member) => (
-            <MemberCard
-              key={member.id}
-              member={member}
-              onRoleChange={handleRoleChange}
-              onDelete={openDeleteModal}
-            />
-          ))
+        {filtered.length > 0 && (
+          <div className={styles.pagination}>
+            <button
+              type="button"
+              className={styles.paginationBtn}
+              disabled={currentPage === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </button>
+
+            {pageNumbers.map((item, index) =>
+              item === "ellipsis" ? (
+                <span key={`ellipsis-${index}`} className={styles.paginationEllipsis}>
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  className={`${styles.paginationBtn} ${styles.paginationNumber} ${
+                    item === currentPage ? styles.paginationActive : ""
+                  }`}
+                  onClick={() => setPage(item)}
+                >
+                  {item}
+                </button>
+              ),
+            )}
+
+            <button
+              type="button"
+              className={styles.paginationBtn}
+              disabled={currentPage === totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
         )}
       </div>
 
-      {filtered.length > 0 && (
-        <div className={styles.pagination}>
-          <button
-            type="button"
-            className={styles.paginationBtn}
-            disabled={currentPage === 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Prev
-          </button>
-
-          {pageNumbers.map((item, index) =>
-            item === "ellipsis" ? (
-              <span key={`ellipsis-${index}`} className={styles.paginationEllipsis}>
-                ...
-              </span>
-            ) : (
-              <button
-                key={item}
-                type="button"
-                className={`${styles.paginationBtn} ${styles.paginationNumber} ${
-                  item === currentPage ? styles.paginationActive : ""
-                }`}
-                onClick={() => setPage(item)}
-              >
-                {item}
-              </button>
-            ),
-          )}
-
-          <button
-            type="button"
-            className={styles.paginationBtn}
-            disabled={currentPage === totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
-
       <DeleteMemberModal
         open={Boolean(deleteTarget)}
+        title={deleteModalTitle}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
       />

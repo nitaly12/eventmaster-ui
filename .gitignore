@@ -33,6 +33,15 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# user-uploaded files
+/public/uploads/avatars/*
+!/public/uploads/avatars/.gitkeep
+
+# sqlite dev database
+/prisma/dev.db
+/prisma/dev.db-journal
+/prisma/prisma/
+
 # vercel
 .vercel
 

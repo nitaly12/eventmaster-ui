@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/client-api";
 import { getAuthSession, getDefaultSession } from "@/lib/authSession";
 import { useDashboardNav } from "./DashboardNavContext";
 import { DashboardNotifications } from "./DashboardNotifications";
@@ -26,7 +27,23 @@ export function DashboardHeader({ title, onNewEvent }) {
   const [user, setUser] = useState(getDefaultSession());
 
   useEffect(() => {
-    setUser(getAuthSession() ?? getDefaultSession());
+    const loadUser = () => {
+      apiGet("/api/user-profile")
+        .then((profile) => {
+          setUser({
+            name: profile.name,
+            email: profile.email,
+            avatar: profile.avatar ?? "/images/Ellipse 44.png",
+          });
+        })
+        .catch(() => {
+          setUser(getAuthSession() ?? getDefaultSession());
+        });
+    };
+
+    loadUser();
+    window.addEventListener("user-profile-updated", loadUser);
+    return () => window.removeEventListener("user-profile-updated", loadUser);
   }, []);
 
   return (

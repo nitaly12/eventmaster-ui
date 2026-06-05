@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import {
-  USER_REQUEST_PAGE_SIZE,
-  userRequests as initialUserRequests,
-} from "../_data/userRequestData";
+import { useEffect, useMemo, useState } from "react";
+import { USER_REQUEST_PAGE_SIZE } from "../_data/userRequestData";
+import { apiGet, apiSend } from "@/lib/client-api";
+import { notifySuccess } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import styles from "./dashboard.module.css";
 
@@ -93,7 +92,15 @@ function buildPageNumbers(current, total) {
 }
 
 export function UserRequestSection() {
-  const [requests, setRequests] = useState(initialUserRequests);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGet("/api/user-requests")
+      .then((data) => setRequests(data))
+      .catch(() => setRequests([]))
+      .finally(() => setLoading(false));
+  }, []);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [confirmTarget, setConfirmTarget] = useState(null);
@@ -127,9 +134,16 @@ export function UserRequestSection() {
     setConfirmTarget(null);
   };
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     if (confirmTarget) {
-      setRequests((prev) => prev.filter((item) => item.id !== confirmTarget.id));
+      await apiSend(`/api/user-requests/${confirmTarget.id}`, "DELETE");
+      const data = await apiGet("/api/user-requests");
+      setRequests(data);
+      notifySuccess(
+        confirmTarget.action === "approve"
+          ? "User request approved successfully"
+          : "User request rejected successfully",
+      );
     }
     closeConfirm();
   };
@@ -170,7 +184,9 @@ export function UserRequestSection() {
         </div>
 
         <div className={styles.userRequestTableBody}>
-          {pageRequests.length === 0 ? (
+          {loading ? (
+            <p className={styles.memberEmpty}>Loading requests...</p>
+          ) : pageRequests.length === 0 ? (
             <p className={styles.memberEmpty}>No user requests found.</p>
           ) : (
             pageRequests.map((request) => (

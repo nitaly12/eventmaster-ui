@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default("default")
+  name      String
+  address   String
+  logoUrl   String?
+  updatedAt DateTime @updatedAt
+}
+
+model UserProfile {
+  id        String   @id @default("default")
+  name      String
+  gender    String
+  email     String
+  birthDate DateTime
+  phone     String
+  address   String
+  role      String   @default("User")
+  avatar    String?
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  displayId String   @unique
+  name      String
+  avatar    String?
+  gender    String
+  email     String   @unique
+  address   String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserRequest {
+  id        String   @id @default(cuid())
+  displayId String   @unique
+  name      String
+  avatar    String?
+  gender    String
+  email     String
+  address   String
+  phone     String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  no        Int
+  name      String
+  qty       Int      @default(0)
+  unit      String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EventCategory {
+  id        String   @id @default(cuid())
+  no        Int
+  name      String   @unique
+  createdAt String
+  createdBy String
+}
+
+model Event {
+  id              String        @id
+  title           String
+  category        String
+  status          String
+  startDate       DateTime
+  endDate         DateTime
+  duration        String
+  maxAttendee     Int
+  address         String
+  description     String
+  longDescription String?
+  image           String?
+  isPublic        Boolean       @default(true)
+  registrationForm Json         @default("[]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  agendaItems     AgendaItem[]
+  materials       Material[]
+  attendees       Attendee[]
+}
+
+model AgendaItem {
+  id          String  @id @default(cuid())
+  eventId     String
+  sortOrder   Int
+  time        String
+  title       String
+  description String?
+  speaker     String?
+  accent      String  @default("green")
+  event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Material {
+  id            String   @id @default(cuid())
+  eventId       String
+  no            Int
+  name          String
+  qty           Int
+  unit          String
+  dueDate       String
+  handler       String
+  supporterIds  Json     @default("[]")
+  status        String
+  note          String   @default("")
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Attendee {
+  id      String @id @default(cuid())
+  eventId String
+  name    String
+  gender  String
+  email   String
+  address String
+  phone   String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  href      String
+  unread    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
