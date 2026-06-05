@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { apiSend } from "@/lib/client-api";
 import styles from "./signup.module.css";
 
 function EyeIcon({ open }) {
@@ -70,6 +72,8 @@ export function SignUpComponent() {
   const [role, setRole] = useState("admin");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const router = useRouter();
 
   const {
     register,
@@ -86,8 +90,21 @@ export function SignUpComponent() {
     clearErrors();
   }, [role, clearErrors]);
 
-  const onSubmit = async () => {
-    // Wire to auth API when available (include role)
+  const onSubmit = async (data) => {
+    setSubmitError("");
+    try {
+      await apiSend("/api/auth/signup", "POST", {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+        role,
+        organizationCode: data.organizationCode,
+      });
+      router.push("/login");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Sign up failed");
+    }
   };
 
   const fullNameField = (
@@ -370,6 +387,12 @@ export function SignUpComponent() {
                 Sign up
               </button>
             </form>
+
+            {submitError && (
+              <p className={styles.errorText} role="alert">
+                {submitError}
+              </p>
+            )}
 
             <p className={styles.loginText}>
               Already have an account?{" "}

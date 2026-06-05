@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { clearAuthSession } from "@/lib/authSession";
+import { apiSend } from "@/lib/client-api";
 import { useDashboardNav } from "./DashboardNavContext";
 import { LogoutModal } from "./LogoutModal";
 import styles from "./dashboard.module.css";
@@ -243,7 +244,12 @@ export function DashboardSidebar() {
       <LogoutModal
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
+          try {
+            await apiSend("/api/auth/logout", "POST");
+          } catch {
+            // ignore
+          }
           clearAuthSession();
           setLogoutOpen(false);
           router.push("/login");

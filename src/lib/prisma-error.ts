@@ -5,7 +5,7 @@ export function prismaErrorResponse(error: unknown) {
   if (error instanceof Prisma.PrismaClientInitializationError) {
     const message = error.message.toLowerCase();
     const hint = message.includes("authentication")
-      ? "Check DATABASE_URL username and password in Vercel environment variables."
+      ? "Check DATABASE_URL in your .env file (copy a fresh pooled connection string from Neon → Connection details)."
       : message.includes("must start with the protocol")
         ? "DATABASE_URL must be a PostgreSQL URL (postgresql://...)."
         : "Use the Neon *pooled* connection string in Vercel and add ?sslmode=require if missing.";

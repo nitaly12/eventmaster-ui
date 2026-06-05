@@ -23,3 +23,7 @@ export function notifyDeleted(label = "Item") {
 export function notifySuccess(message) {
   toast.success(message, defaultOptions);
 }
+
+export function notifyError(message) {
+  toast.error(message, defaultOptions);
+}

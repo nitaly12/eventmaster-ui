@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { setAuthSession } from "@/lib/authSession";
+import { apiSend } from "@/lib/client-api";
+import { notifyError } from "@/lib/toast";
 import styles from "./login.module.css";
 
 function EyeIcon({ open }) {
@@ -71,11 +72,21 @@ export function LoginComponent() {
   });
 
   const onSubmit = async (data) => {
-    setAuthSession({
-      email: data.email,
-      name: data.email.split("@")[0] || "Thomas Brown",
-    });
-    router.push("/dashboard");
+    try {
+      await apiSend("/api/auth/login", "POST", {
+        email: data.email,
+        password: data.password,
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Login failed";
+      const friendlyMessage =
+        message === "Invalid email or password"
+          ? "Incorrect email or password. Please try again or sign up."
+          : message;
+      notifyError(friendlyMessage);
+    }
   };
 
   return (

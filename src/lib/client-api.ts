@@ -1,5 +1,5 @@
 export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(path);
+  const response = await fetch(path, { credentials: "include" });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     throw new Error(payload.error ?? "Request failed");
@@ -14,6 +14,7 @@ export async function apiSend<T>(
 ): Promise<T> {
   const response = await fetch(path, {
     method,
+    credentials: "include",
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -30,6 +31,7 @@ export async function apiUpload<T>(path: string, fieldName: string, file: File):
 
   const response = await fetch(path, {
     method: "POST",
+    credentials: "include",
     body: formData,
   });
 

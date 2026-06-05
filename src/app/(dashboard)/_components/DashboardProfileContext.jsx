@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiGet } from "@/lib/client-api";
-import { getAuthSession, getDefaultSession } from "@/lib/authSession";
+import { getDefaultSession } from "@/lib/authSession";
 
 const DashboardProfileContext = createContext({
   user: getDefaultSession(),
@@ -24,7 +24,7 @@ export function DashboardProfileProvider({ children }) {
           });
         })
         .catch(() => {
-          setUser(getAuthSession() ?? getDefaultSession());
+          setUser(getDefaultSession());
         })
         .finally(() => setReady(true));
     };

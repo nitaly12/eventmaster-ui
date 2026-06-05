@@ -2,18 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAuthSession } from "@/lib/authSession";
+import { apiGet } from "@/lib/client-api";
 
 export function DashboardAuthGuard({ children }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!getAuthSession()) {
-      router.replace("/login");
-      return;
-    }
-    setReady(true);
+    apiGet("/api/auth/me")
+      .then(() => setReady(true))
+      .catch(() => router.replace("/login"));
   }, [router]);
 
   if (!ready) {

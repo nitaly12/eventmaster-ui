@@ -148,3 +148,17 @@ model Notification {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 }
+
+// Auth users for login/signup.
+// Kept separate from `UserProfile` which is your editable dashboard profile card.
+model AuthUser {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  phone          String?
+  role           String   @default("admin") // "admin" | "user"
+  organizationCode String?
+  passwordHash  String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
