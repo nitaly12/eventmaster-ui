@@ -6,6 +6,7 @@ import { USER_REQUEST_PAGE_SIZE } from "../_data/userRequestData";
 import { apiGet, apiSend } from "@/lib/client-api";
 import { notifySuccess } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
+import { TableRowsSkeleton } from "./PageContentSkeleton";
 import styles from "./dashboard.module.css";
 
 function SearchIcon() {
@@ -185,7 +186,7 @@ export function UserRequestSection() {
 
         <div className={styles.userRequestTableBody}>
           {loading ? (
-            <p className={styles.memberEmpty}>Loading requests...</p>
+            <TableRowsSkeleton rows={6} />
           ) : pageRequests.length === 0 ? (
             <p className={styles.memberEmpty}>No user requests found.</p>
           ) : (

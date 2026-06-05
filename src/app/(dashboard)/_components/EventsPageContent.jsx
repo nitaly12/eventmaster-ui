@@ -11,6 +11,7 @@ import { CreateEventModal } from "./CreateEventModal";
 import { DeleteEventModal } from "./DeleteEventModal";
 import { DashboardHeader } from "./DashboardHeader";
 import { EventCardMenu } from "./EventCardMenu";
+import { PageContentSkeleton } from "./PageContentSkeleton";
 import styles from "./dashboard.module.css";
 
 function SearchIcon() {
@@ -313,7 +314,7 @@ export function EventsPageContent() {
       </div>
 
       {loading ? (
-        <p className={styles.eventsEmpty}>Loading events...</p>
+        <PageContentSkeleton rows={4} />
       ) : filteredEvents.length === 0 ? (
         <p className={styles.eventsEmpty}>No events match your filters.</p>
       ) : (

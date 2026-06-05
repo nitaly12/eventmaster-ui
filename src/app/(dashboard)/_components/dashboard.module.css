@@ -44,13 +44,30 @@
 }
 
 .nav {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 6px;
 }
 
+.navActiveIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 40%, #6366f1 100%);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+  transition:
+    top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
 .navLink {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -60,7 +77,8 @@
   font-weight: 500;
   color: #98a2b3;
   text-decoration: none;
-  transition: all 0.2s ease;
+  background: transparent;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .navLink:hover {
@@ -69,14 +87,13 @@
 }
 
 .navLinkActive {
-  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 40%, #6366f1 100%);
   color: #ffffff;
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+  background: transparent;
 }
 
 .navLinkActive:hover {
   color: #ffffff;
-  filter: brightness(1.05);
+  background: transparent;
 }
 
 .navLinkLabel {
@@ -108,11 +125,26 @@
 
 .navSubMenu {
   display: flex;
+  overflow: hidden;
   flex-direction: column;
   gap: 4px;
+  max-height: 0;
   margin-left: 20px;
   padding-left: 14px;
   border-left: 2px solid #f2f4f7;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.22s ease,
+    margin-top 0.22s ease;
+}
+
+.navSubMenuOpen {
+  max-height: 120px;
+  margin-top: 4px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .navSubLink {
@@ -186,6 +218,83 @@
 
 .content {
   padding: 28px 32px 48px;
+}
+
+.pageTransition {
+  animation: dashboardPageIn 0.24s ease-out;
+}
+
+@keyframes dashboardPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pageSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pageSkeletonToolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pageSkeletonBlock {
+  display: block;
+  width: 220px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f2f4f7 0%, #e9edf3 50%, #f2f4f7 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+.pageSkeletonBlockShort {
+  width: 140px;
+}
+
+.pageSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #eaecf0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.pageSkeletonRow {
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f2f4f7 0%, #e9edf3 50%, #f2f4f7 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+.tableRowsSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 @media (min-width: 1400px) {
@@ -4348,16 +4457,15 @@
   }
 
   .navSubMenu {
-    display: none;
     position: static;
-    margin: 4px 0 0;
+    margin: 0;
     padding: 0 0 0 20px;
     border-left: 2px solid #f2f4f7;
     box-shadow: none;
   }
 
-  .sidebarMobileOpen .navSubMenu {
-    display: flex;
+  .navSubMenuOpen {
+    margin-top: 4px;
   }
 
   .navSubLink {

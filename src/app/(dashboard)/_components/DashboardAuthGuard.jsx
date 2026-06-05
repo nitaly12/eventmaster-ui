@@ -17,7 +17,7 @@ export function DashboardAuthGuard({ children }) {
   }, [router]);
 
   if (!ready) {
-    return null;
+    return <div className="min-h-screen bg-[#f9fafb]" aria-hidden />;
   }
 
   return children;

@@ -2,6 +2,7 @@
 
 import { DashboardAuthGuard } from "./DashboardAuthGuard";
 import { DashboardNavProvider, useDashboardNav } from "./DashboardNavContext";
+import { DashboardProfileProvider } from "./DashboardProfileContext";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardToast } from "./DashboardToast";
 import styles from "./dashboard.module.css";
@@ -24,14 +25,16 @@ function SidebarBackdrop() {
 export function DashboardShell({ children }) {
   return (
     <DashboardNavProvider>
-      <div className={styles.shell}>
-        <SidebarBackdrop />
-        <DashboardSidebar />
-        <div className={styles.main}>
-          <DashboardAuthGuard>{children}</DashboardAuthGuard>
+      <DashboardProfileProvider>
+        <div className={styles.shell}>
+          <SidebarBackdrop />
+          <DashboardSidebar />
+          <div className={styles.main}>
+            <DashboardAuthGuard>{children}</DashboardAuthGuard>
+          </div>
+          <DashboardToast />
         </div>
-        <DashboardToast />
-      </div>
+      </DashboardProfileProvider>
     </DashboardNavProvider>
   );
 }

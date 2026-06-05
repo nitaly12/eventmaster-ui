@@ -2,10 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/client-api";
-import { getAuthSession, getDefaultSession } from "@/lib/authSession";
 import { useDashboardNav } from "./DashboardNavContext";
+import { useDashboardProfile } from "./DashboardProfileContext";
 import { DashboardNotifications } from "./DashboardNotifications";
 import styles from "./dashboard.module.css";
 
@@ -24,27 +22,7 @@ function MenuIcon() {
 
 export function DashboardHeader({ title, onNewEvent }) {
   const { toggleMobileNav, mobileNavOpen } = useDashboardNav();
-  const [user, setUser] = useState(getDefaultSession());
-
-  useEffect(() => {
-    const loadUser = () => {
-      apiGet("/api/user-profile")
-        .then((profile) => {
-          setUser({
-            name: profile.name,
-            email: profile.email,
-            avatar: profile.avatar ?? "/images/Ellipse 44.png",
-          });
-        })
-        .catch(() => {
-          setUser(getAuthSession() ?? getDefaultSession());
-        });
-    };
-
-    loadUser();
-    window.addEventListener("user-profile-updated", loadUser);
-    return () => window.removeEventListener("user-profile-updated", loadUser);
-  }, []);
+  const { user } = useDashboardProfile();
 
   return (
     <header className={styles.header}>
@@ -68,7 +46,7 @@ export function DashboardHeader({ title, onNewEvent }) {
             <span className={styles.newEventLabel}>New Event</span>
           </button>
         ) : (
-          <Link href="/dashboard/events?create=1" className={styles.newEventBtn}>
+          <Link href="/dashboard/events?create=1" className={styles.newEventBtn} prefetch>
             <span className={styles.newEventPlus}>+</span>
             <span className={styles.newEventLabel}>New Event</span>
           </Link>

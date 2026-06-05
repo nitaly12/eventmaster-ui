@@ -5,6 +5,7 @@ import { ATTENDEES_PAGE_SIZE } from "../_data/attendeesData";
 import { apiGet, apiSend } from "@/lib/client-api";
 import { notifyDeleted } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
+import { TableRowsSkeleton } from "./PageContentSkeleton";
 import styles from "./dashboard.module.css";
 
 function SearchIcon() {
@@ -132,7 +133,7 @@ export function EventAttendeesSection({ eventId, eventTitle }) {
 
         <div className={styles.attendeeTableBody}>
           {loading ? (
-            <p className={styles.memberEmpty}>Loading attendees...</p>
+            <TableRowsSkeleton rows={6} />
           ) : pageAttendees.length === 0 ? (
             <p className={styles.memberEmpty}>No attendees found.</p>
           ) : (

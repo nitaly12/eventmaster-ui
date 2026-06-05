@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { clearAuthSession } from "@/lib/authSession";
 import { useDashboardNav } from "./DashboardNavContext";
 import { LogoutModal } from "./LogoutModal";
@@ -87,6 +87,28 @@ export function DashboardSidebar() {
   const isSettingsRoute = pathname.startsWith("/dashboard/settings");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const navRef = useRef(null);
+  const [indicator, setIndicator] = useState(null);
+
+  const updateIndicator = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const active = nav.querySelector("[data-nav-active='true']");
+    if (!active) {
+      setIndicator(null);
+      return;
+    }
+
+    setIndicator({
+      top: active.offsetTop,
+      height: active.offsetHeight,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    updateIndicator();
+  }, [pathname, settingsOpen, mobileNavOpen, updateIndicator]);
 
   useEffect(() => {
     const syncSettingsOpen = () => {
@@ -110,6 +132,11 @@ export function DashboardSidebar() {
     }
   }, [mobileNavOpen, isSettingsRoute]);
 
+  useEffect(() => {
+    window.addEventListener("resize", updateIndicator);
+    return () => window.removeEventListener("resize", updateIndicator);
+  }, [updateIndicator]);
+
   const closeNav = () => closeMobileNav();
 
   return (
@@ -121,11 +148,20 @@ export function DashboardSidebar() {
         className={styles.logoWrap}
         aria-label="EventMaster home"
         onClick={closeNav}
+        prefetch
       >
         <span className={styles.logoCircle}>E</span>
       </Link>
 
-      <nav className={styles.nav}>
+      <nav className={styles.nav} ref={navRef}>
+        {indicator && (
+          <span
+            className={styles.navActiveIndicator}
+            style={{ top: indicator.top, height: indicator.height }}
+            aria-hidden
+          />
+        )}
+
         {navItems.map((item) => {
           const isActive =
             item.href === "/dashboard"
@@ -136,6 +172,8 @@ export function DashboardSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch
+              data-nav-active={isActive}
               className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
               onClick={closeNav}
             >
@@ -148,6 +186,7 @@ export function DashboardSidebar() {
         <div className={styles.navSettingsGroup}>
           <button
             type="button"
+            data-nav-active={isSettingsRoute}
             className={`${styles.navLink} ${isSettingsRoute ? styles.navLinkActive : ""}`}
             onClick={() => {
               if (isSettingsRoute) {
@@ -164,23 +203,25 @@ export function DashboardSidebar() {
             <ChevronIcon expanded={settingsOpen} />
           </button>
 
-          {settingsOpen && (
-            <div className={styles.navSubMenu}>
-              {settingsSubItems.map((item) => {
-                const isSubActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`${styles.navSubLink} ${isSubActive ? styles.navSubLinkActive : ""}`}
-                    onClick={closeNav}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div
+            className={`${styles.navSubMenu} ${settingsOpen ? styles.navSubMenuOpen : ""}`}
+            aria-hidden={!settingsOpen}
+          >
+            {settingsSubItems.map((item) => {
+              const isSubActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  prefetch
+                  className={`${styles.navSubLink} ${isSubActive ? styles.navSubLinkActive : ""}`}
+                  onClick={closeNav}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 

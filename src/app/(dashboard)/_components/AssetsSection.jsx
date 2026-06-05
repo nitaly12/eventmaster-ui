@@ -6,6 +6,7 @@ import { apiGet, apiSend } from "@/lib/client-api";
 import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { CreateAssetModal } from "./CreateAssetModal";
 import { DeleteAssetModal } from "./DeleteAssetModal";
+import { TableRowsSkeleton } from "./PageContentSkeleton";
 import { MemberSelectCheckbox } from "./MemberSelectCheckbox";
 import { UpdateAssetModal } from "./UpdateAssetModal";
 import styles from "./dashboard.module.css";
@@ -404,7 +405,7 @@ export function AssetsSection() {
 
           <div className={styles.assetTableBody}>
             {loading ? (
-              <p className={styles.memberEmpty}>Loading assets...</p>
+              <TableRowsSkeleton rows={6} />
             ) : pageAssets.length === 0 ? (
               <p className={styles.memberEmpty}>No assets found.</p>
             ) : (
@@ -467,7 +468,7 @@ export function AssetsSection() {
 
         <div className={styles.assetCardsMobile}>
           {loading ? (
-            <p className={styles.memberEmpty}>Loading assets...</p>
+            <TableRowsSkeleton rows={4} />
           ) : pageAssets.length === 0 ? (
             <p className={styles.memberEmpty}>No assets found.</p>
           ) : (

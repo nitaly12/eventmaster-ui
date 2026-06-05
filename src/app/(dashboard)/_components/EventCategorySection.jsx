@@ -6,6 +6,7 @@ import { notifyCreated, notifyDeleted, notifyUpdated } from "@/lib/toast";
 import styles from "./dashboard.module.css";
 import { CreateCategoryModal } from "./CreateCategoryModal";
 import { DeleteCategoryModal } from "./DeleteCategoryModal";
+import { TableRowsSkeleton } from "./PageContentSkeleton";
 import { UpdateCategoryModal } from "./UpdateCategoryModal";
 
 function TrashIcon() {
@@ -162,7 +163,7 @@ export function EventCategorySection() {
 
         <div className={styles.tableBody}>
           {loading ? (
-            <p className={styles.memberEmpty}>Loading categories...</p>
+            <TableRowsSkeleton rows={5} />
           ) : categories.length === 0 ? (
             <p className={styles.memberEmpty}>No categories yet.</p>
           ) : (

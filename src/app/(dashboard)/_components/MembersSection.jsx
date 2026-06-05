@@ -6,6 +6,7 @@ import { MEMBERS_PAGE_SIZE } from "../_data/membersData";
 import { apiGet, apiSend } from "@/lib/client-api";
 import { notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
+import { TableRowsSkeleton } from "./PageContentSkeleton";
 import { MemberSelectCheckbox } from "./MemberSelectCheckbox";
 import { RoleDropdown } from "./RoleDropdown";
 import styles from "./dashboard.module.css";
@@ -346,7 +347,7 @@ export function MembersSection() {
 
           <div className={styles.memberTableBody}>
             {loading ? (
-              <p className={styles.memberEmpty}>Loading members...</p>
+              <TableRowsSkeleton rows={6} />
             ) : pageMembers.length === 0 ? (
               <p className={styles.memberEmpty}>No members found.</p>
             ) : (
@@ -403,7 +404,7 @@ export function MembersSection() {
 
         <div className={styles.memberCardsMobile}>
           {loading ? (
-            <p className={styles.memberEmpty}>Loading members...</p>
+            <TableRowsSkeleton rows={4} />
           ) : pageMembers.length === 0 ? (
             <p className={styles.memberEmpty}>No members found.</p>
           ) : (
