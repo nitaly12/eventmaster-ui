@@ -73,6 +73,9 @@ export function LoginComponent() {
 
   const onSubmit = async (data) => {
     try {
+      // Clear any previous session so a failed login cannot leave an old cookie active.
+      await apiSend("/api/auth/logout", "POST").catch(() => {});
+
       await apiSend("/api/auth/login", "POST", {
         email: data.email,
         password: data.password,

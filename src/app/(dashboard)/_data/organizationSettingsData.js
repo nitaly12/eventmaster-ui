@@ -1,3 +1,5 @@
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
+
 export const defaultOrganizationProfile = {
   name: "EventMaster",
   address: "Street 128, Toul Kork, Phnom Penh, Cambodia",
@@ -11,7 +13,7 @@ export const defaultUserProfile = {
   phone: "012345678",
   address: "Street156, Sen Sok, Phnom Penh",
   role: "User",
-  avatar: "/images/Ellipse 44.png",
+  avatar: DEFAULT_PROFILE_AVATAR,
 };
 
 export const USER_GENDER_OPTIONS = ["Female", "Male", "Other"];

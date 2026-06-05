@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiGet } from "@/lib/client-api";
 import { getDefaultSession } from "@/lib/authSession";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 
 const DashboardProfileContext = createContext({
   user: getDefaultSession(),
@@ -15,12 +16,15 @@ export function DashboardProfileProvider({ children }) {
 
   useEffect(() => {
     const loadUser = () => {
-      apiGet("/api/user-profile")
-        .then((profile) => {
+      Promise.all([
+        apiGet("/api/auth/me"),
+        apiGet("/api/user-profile").catch(() => null),
+      ])
+        .then(([authUser, profile]) => {
           setUser({
-            name: profile.name,
-            email: profile.email,
-            avatar: profile.avatar ?? "/images/Ellipse 44.png",
+            name: authUser.name,
+            email: authUser.email,
+            avatar: profile?.avatar ?? DEFAULT_PROFILE_AVATAR,
           });
         })
         .catch(() => {

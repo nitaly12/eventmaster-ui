@@ -1,5 +1,6 @@
 import type { AgendaItem, Asset, Attendee, Event, EventCategory, Material, Member, Notification, Organization, UserProfile, UserRequest } from "@prisma/client";
 import { computeMaterialStats } from "@/app/(dashboard)/_data/materialData";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 
 export function mapMember(member: Member) {
   return {
@@ -179,7 +180,7 @@ export function mapNotification(notification: Notification, index = 0) {
   const name = notificationDisplayName(notification.message, notification.title);
   const avatar =
     /Ly Nita/i.test(name) && notification.href.includes("user-request")
-      ? "/images/Ellipse 44.png"
+      ? DEFAULT_PROFILE_AVATAR
       : null;
 
   return {

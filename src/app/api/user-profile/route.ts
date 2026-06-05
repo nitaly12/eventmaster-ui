@@ -3,6 +3,7 @@ import { mapUserProfile } from "@/lib/mappers";
 import { deleteUploadedAvatar } from "@/lib/save-uploaded-image";
 import { jsonError, jsonOk, parseJsonBody } from "@/lib/api-response";
 import { prismaErrorResponse } from "@/lib/prisma-error";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 
 function resolveAvatarUrl(avatar: unknown, fallback: string | null) {
   if (typeof avatar !== "string" || !avatar.trim() || avatar.startsWith("blob:")) {
@@ -71,7 +72,7 @@ export async function PATCH(request: Request) {
         phone: body.phone.trim(),
         address: body.address.trim(),
         role: body.role?.trim() || "User",
-        avatar: nextAvatar ?? "/images/Ellipse 44.png",
+        avatar: nextAvatar ?? DEFAULT_PROFILE_AVATAR,
       },
     });
 

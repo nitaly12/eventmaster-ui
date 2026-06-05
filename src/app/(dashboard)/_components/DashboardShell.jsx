@@ -25,16 +25,16 @@ function SidebarBackdrop() {
 export function DashboardShell({ children }) {
   return (
     <DashboardNavProvider>
-      <DashboardProfileProvider>
-        <div className={styles.shell}>
-          <SidebarBackdrop />
-          <DashboardSidebar />
-          <div className={styles.main}>
-            <DashboardAuthGuard>{children}</DashboardAuthGuard>
+      <DashboardAuthGuard>
+        <DashboardProfileProvider>
+          <div className={styles.shell}>
+            <SidebarBackdrop />
+            <DashboardSidebar />
+            <div className={styles.main}>{children}</div>
+            <DashboardToast />
           </div>
-          <DashboardToast />
-        </div>
-      </DashboardProfileProvider>
+        </DashboardProfileProvider>
+      </DashboardAuthGuard>
     </DashboardNavProvider>
   );
 }

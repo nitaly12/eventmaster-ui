@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useDashboardNav } from "./DashboardNavContext";
 import { useDashboardProfile } from "./DashboardProfileContext";
 import { DashboardNotifications } from "./DashboardNotifications";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 import styles from "./dashboard.module.css";
 
 function MenuIcon() {
@@ -57,10 +58,10 @@ export function DashboardHeader({ title, onNewEvent }) {
             <p className={styles.profileEmail}>{user.email}</p>
           </div>
           <Image
-            src={user.avatar ?? "/images/Ellipse 44.png"}
+            src={user.avatar ?? DEFAULT_PROFILE_AVATAR}
             alt={user.name}
-            width={46}
-            height={46}
+            width={42}
+            height={52}
             className={styles.profileAvatar}
           />
         </div>

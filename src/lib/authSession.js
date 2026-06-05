@@ -1,9 +1,11 @@
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
+
 const AUTH_STORAGE_KEY = "eventmaster_auth";
 
 const defaultSession = {
   name: "Thomas Brown",
   email: "ThomasNikola@gmail.com",
-  avatar: "/images/Ellipse 44.png",
+  avatar: DEFAULT_PROFILE_AVATAR,
 };
 
 export function setAuthSession(session) {

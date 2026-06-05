@@ -585,25 +585,37 @@
 }
 
 .profileInfo {
-  text-align: right;
+  text-align: left;
+  min-width: 0;
 }
 
 .profileName {
   margin: 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.25;
   color: #101828;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profileEmail {
-  margin: 3px 0 0;
+  margin: 2px 0 0;
   font-size: 12px;
+  line-height: 1.3;
   color: #98a2b3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profileAvatar {
+  flex-shrink: 0;
+  width: 45px;
+  height: 45px;
   border: 2px solid #ffffff;
-  border-radius: 50%;
+  border-radius: 100%;
   object-fit: cover;
   box-shadow: 0 2px 8px rgba(16, 24, 40, 0.1);
 }
