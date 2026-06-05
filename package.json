@@ -14,6 +14,7 @@
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:setup": "prisma db push && prisma db seed",
     "db:seed": "prisma db seed",
     "db:check": "node scripts/check-db.mjs",
     "db:studio": "prisma studio",

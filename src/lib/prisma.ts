@@ -6,11 +6,17 @@ const globalForPrisma = globalThis as unknown as {
   prismaDatabaseUrl: string | undefined;
 };
 
-/** SQLite paths in .env are relative to prisma/; Next.js cwd is the project root. */
+/** Resolve DATABASE_URL; SQLite paths are relative to prisma/ when used locally. */
 export function resolveDatabaseUrl(): string {
   const envUrl = process.env.DATABASE_URL?.trim();
 
-  if (envUrl?.startsWith("file:")) {
+  if (!envUrl) {
+    throw new Error(
+      "DATABASE_URL is not set. Add your Neon PostgreSQL connection string in Vercel → Settings → Environment Variables.",
+    );
+  }
+
+  if (envUrl.startsWith("file:")) {
     const filePath = envUrl.replace(/^file:/, "").replace(/^\/+/, "");
     const absolutePath = path.isAbsolute(filePath)
       ? filePath
@@ -18,12 +24,7 @@ export function resolveDatabaseUrl(): string {
     return `file:${absolutePath.replace(/\\/g, "/")}`;
   }
 
-  if (envUrl) {
-    return envUrl;
-  }
-
-  const fallback = path.join(process.cwd(), "prisma", "dev.db");
-  return `file:${fallback.replace(/\\/g, "/")}`;
+  return envUrl;
 }
 
 function createPrismaClient(databaseUrl: string) {
@@ -35,17 +36,22 @@ function createPrismaClient(databaseUrl: string) {
   });
 }
 
-const databaseUrl = resolveDatabaseUrl();
+function getPrismaClient() {
+  const databaseUrl = resolveDatabaseUrl();
 
-if (globalForPrisma.prismaDatabaseUrl !== databaseUrl) {
+  if (
+    globalForPrisma.prisma &&
+    globalForPrisma.prismaDatabaseUrl === databaseUrl
+  ) {
+    return globalForPrisma.prisma;
+  }
+
   void globalForPrisma.prisma?.$disconnect();
-  globalForPrisma.prisma = undefined;
-}
 
-export const prisma =
-  globalForPrisma.prisma ?? createPrismaClient(databaseUrl);
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  const client = createPrismaClient(databaseUrl);
+  globalForPrisma.prisma = client;
   globalForPrisma.prismaDatabaseUrl = databaseUrl;
+  return client;
 }
+
+export const prisma = getPrismaClient();
