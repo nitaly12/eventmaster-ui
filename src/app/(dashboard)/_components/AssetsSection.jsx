@@ -405,7 +405,7 @@ export function AssetsSection() {
 
           <div className={styles.assetTableBody}>
             {loading ? (
-              <TableRowsSkeleton rows={6} />
+              <TableRowsSkeleton rows={5} />
             ) : pageAssets.length === 0 ? (
               <p className={styles.memberEmpty}>No assets found.</p>
             ) : (

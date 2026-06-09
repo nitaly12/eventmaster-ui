@@ -1,11 +1,15 @@
 import { Suspense } from "react";
+import { DashboardHeader } from "../../_components/DashboardHeader";
 import { EventsPageContent } from "../../_components/EventsPageContent";
 import styles from "../../_components/dashboard.module.css";
 
 function EventsFallback() {
   return (
     <div className={styles.content}>
-      <p className={styles.placeholderText}>Loading events...</p>
+      <DashboardHeader title="Events" />
+      <div className={styles.contentBody}>
+        <p className={styles.placeholderText}>Loading events...</p>
+      </div>
     </div>
   );
 }

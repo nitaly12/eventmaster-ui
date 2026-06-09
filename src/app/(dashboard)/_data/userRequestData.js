@@ -1,10 +1,10 @@
-export const USER_REQUEST_PAGE_SIZE = 7;
+export const USER_REQUEST_PAGE_SIZE = 5;
 
 export const userRequests = [
   {
     id: "001",
     name: "Ly Nita",
-    avatar: "/images/Ellipse 44.png",
+    avatar: "/images/default-profile.jpg",
     gender: "Female",
     email: "nita2024@gmail.com",
     address: "Street156, Sen Sok, Phnom Penh",

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { USER_REQUEST_PAGE_SIZE } from "../_data/userRequestData";
 import { apiGet, apiSend } from "@/lib/client-api";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 import { notifySuccess } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { TableRowsSkeleton } from "./PageContentSkeleton";
@@ -45,32 +46,17 @@ function CloseIcon() {
   );
 }
 
-function getInitials(name) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 function RequestAvatar({ name, avatar }) {
-  if (avatar) {
-    return (
-      <Image
-        src={avatar}
-        alt={name}
-        width={36}
-        height={36}
-        className={styles.memberAvatar}
-      />
-    );
-  }
+  const src = avatar || DEFAULT_PROFILE_AVATAR;
 
   return (
-    <span className={styles.memberAvatarFallback} aria-hidden>
-      {getInitials(name)}
-    </span>
+    <Image
+      src={src}
+      alt={name}
+      width={36}
+      height={36}
+      className={styles.memberAvatar}
+    />
   );
 }
 
@@ -156,8 +142,8 @@ export function UserRequestSection() {
 
   return (
     <>
-      <div className={styles.tableCard}>
-        <div className={styles.tableHeader}>
+      <div className={`${styles.tableCard} ${styles.userRequestPageCard}`}>
+        <div className={`${styles.tableHeader} ${styles.userRequestTableHeader}`}>
           <h2 className={styles.tableTitle}>Show All User Request</h2>
           <div className={styles.memberSearchWrap}>
             <span className={styles.memberSearchIcon}>
@@ -174,54 +160,62 @@ export function UserRequestSection() {
           </div>
         </div>
 
-        <div className={styles.userRequestTableColumns}>
-          <span>ID</span>
-          <span>Name</span>
-          <span>Gender</span>
-          <span>Email</span>
-          <span>Address</span>
-          <span>Phone Number</span>
-          <span>Action</span>
-        </div>
+        <div className={styles.userRequestTableDesktop}>
+          <div className={styles.userRequestTableColumns}>
+            <span>ID</span>
+            <span>Name</span>
+            <span>Gender</span>
+            <span>Email</span>
+            <span>Address</span>
+            <span>Phone Number</span>
+            <span>Action</span>
+          </div>
 
-        <div className={styles.userRequestTableBody}>
-          {loading ? (
-            <TableRowsSkeleton rows={6} />
-          ) : pageRequests.length === 0 ? (
-            <p className={styles.memberEmpty}>No user requests found.</p>
-          ) : (
-            pageRequests.map((request) => (
-              <div key={request.id} className={styles.userRequestTableRow}>
-                <span className={styles.memberId}>{request.id}</span>
-                <div className={styles.memberNameCell}>
-                  <RequestAvatar name={request.name} avatar={request.avatar} />
-                  <span>{request.name}</span>
+          <div className={styles.userRequestTableBody}>
+            {loading ? (
+              <TableRowsSkeleton rows={5} />
+            ) : pageRequests.length === 0 ? (
+              <p className={styles.memberEmpty}>No user requests found.</p>
+            ) : (
+              pageRequests.map((request) => (
+                <div key={request.id} className={styles.userRequestTableRow}>
+                  <span className={styles.memberId}>{request.id}</span>
+                  <div className={styles.memberNameCell}>
+                    <RequestAvatar name={request.name} avatar={request.avatar} />
+                    <span className={styles.userRequestName}>{request.name}</span>
+                  </div>
+                  <span className={styles.userRequestCell}>{request.gender}</span>
+                  <span className={`${styles.memberEmail} ${styles.userRequestCell}`}>
+                    {request.email}
+                  </span>
+                  <span className={`${styles.memberAddress} ${styles.userRequestCell}`}>
+                    {request.address}
+                  </span>
+                  <span className={`${styles.attendeePhone} ${styles.userRequestCell}`}>
+                    {request.phone}
+                  </span>
+                  <div className={`${styles.actionCell} ${styles.userRequestActionCell}`}>
+                    <button
+                      type="button"
+                      className={`${styles.actionBtn} ${styles.editBtn}`}
+                      aria-label={`Approve ${request.name}`}
+                      onClick={() => openConfirm(request, "approve")}
+                    >
+                      <CheckIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                      aria-label={`Reject ${request.name}`}
+                      onClick={() => openConfirm(request, "reject")}
+                    >
+                      <CloseIcon />
+                    </button>
+                  </div>
                 </div>
-                <span>{request.gender}</span>
-                <span className={styles.memberEmail}>{request.email}</span>
-                <span className={styles.memberAddress}>{request.address}</span>
-                <span className={styles.attendeePhone}>{request.phone}</span>
-                <div className={`${styles.actionCell} ${styles.userRequestActionCell}`}>
-                  <button
-                    type="button"
-                    className={`${styles.actionBtn} ${styles.editBtn}`}
-                    aria-label={`Approve ${request.name}`}
-                    onClick={() => openConfirm(request, "approve")}
-                  >
-                    <CheckIcon />
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    aria-label={`Reject ${request.name}`}
-                    onClick={() => openConfirm(request, "reject")}
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
 
         {filtered.length > 0 && (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ROLE_DROPDOWN_OPTIONS, getRoleLabel } from "./roleOptions";
 import styles from "./dashboard.module.css";
 
@@ -88,69 +89,127 @@ function getTriggerClass(role) {
 
 export function RoleDropdown({ role, onChange }) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const updateMenuPosition = useCallback(() => {
+    if (!triggerRef.current) return;
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    const menuHeight = 220;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    setMenuPosition(
+      openAbove
+        ? {
+            bottom: window.innerHeight - rect.top + 8,
+            left: rect.left,
+            minWidth: Math.max(rect.width, 196),
+          }
+        : {
+            top: rect.bottom + 8,
+            left: rect.left,
+            minWidth: Math.max(rect.width, 196),
+          },
+    );
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+
+    updateMenuPosition();
+
     const handleClickOutside = (event) => {
-      if (rootRef.current && !rootRef.current.contains(event.target)) {
-        setOpen(false);
+      const target = event.target;
+      if (
+        triggerRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
     };
+
     const handleEscape = (event) => {
       if (event.key === "Escape") setOpen(false);
     };
+
+    const handleReposition = () => updateMenuPosition();
+
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [open]);
+  }, [open, updateMenuPosition]);
 
   if (role === "Admin") {
     return <span className={styles.roleBadgeAdmin}>Admin</span>;
   }
 
+  const menu =
+    open && menuPosition ? (
+      <div
+        ref={menuRef}
+        className={`${styles.roleDropdownMenu} ${styles.roleDropdownMenuPortal}`}
+        role="listbox"
+        style={{
+          top: menuPosition.top,
+          bottom: menuPosition.bottom,
+          left: menuPosition.left,
+          minWidth: menuPosition.minWidth,
+        }}
+      >
+        {ROLE_DROPDOWN_OPTIONS.map((option, index) => (
+          <div key={option.value}>
+            {index > 0 && <div className={styles.roleDropdownDivider} />}
+            <button
+              type="button"
+              role="option"
+              aria-selected={role === option.value}
+              className={`${styles.roleDropdownItem} ${
+                role === option.value ? styles.roleDropdownItemActive : ""
+              }`}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              <span className={styles.roleDropdownItemIcon}>
+                <RoleOptionIcon role={option.value} />
+              </span>
+              {option.label}
+            </button>
+          </div>
+        ))}
+      </div>
+    ) : null;
+
   return (
-    <div className={styles.roleDropdown} ref={rootRef}>
+    <div className={styles.roleDropdown}>
       <button
+        ref={triggerRef}
         type="button"
         className={`${styles.roleDropdownTrigger} ${getTriggerClass(role)}`}
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span>{getRoleLabel(role)}</span>
+        <span className={styles.roleDropdownLabel}>{getRoleLabel(role)}</span>
         <ChevronIcon />
       </button>
 
-      {open && (
-        <div className={styles.roleDropdownMenu} role="listbox">
-          {ROLE_DROPDOWN_OPTIONS.map((option, index) => (
-            <div key={option.value}>
-              {index > 0 && <div className={styles.roleDropdownDivider} />}
-              <button
-                type="button"
-                role="option"
-                aria-selected={role === option.value}
-                className={`${styles.roleDropdownItem} ${
-                  role === option.value ? styles.roleDropdownItemActive : ""
-                }`}
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-              >
-                <span className={styles.roleDropdownItemIcon}>
-                  <RoleOptionIcon role={option.value} />
-                </span>
-                {option.label}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {typeof document !== "undefined" && menu
+        ? createPortal(menu, document.body)
+        : null}
     </div>
   );
 }

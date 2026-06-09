@@ -2,7 +2,7 @@ export const members = [
   {
     id: "001",
     name: "Thomas Brown",
-    avatar: "/images/Ellipse 44.png",
+    avatar: "/images/default-profile.jpg",
     gender: "Male",
     email: "ThomasNikola@gmail.com",
     address: "742 Evergreen Terrace, Springfield",
@@ -127,4 +127,4 @@ export const members = [
   },
 ];
 
-export const MEMBERS_PAGE_SIZE = 7;
+export const MEMBERS_PAGE_SIZE = 5;

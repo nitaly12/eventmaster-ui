@@ -6,7 +6,9 @@ export default function UserProfilePage() {
   return (
     <div className={styles.content}>
       <DashboardHeader title="Account Details" />
-      <UserProfileSection />
+      <div className={styles.contentBody}>
+        <UserProfileSection />
+      </div>
     </div>
   );
 }

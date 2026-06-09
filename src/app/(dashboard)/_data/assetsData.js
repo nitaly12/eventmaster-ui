@@ -1,6 +1,6 @@
 export const ASSET_UNITS = ["Box", "Bottle", "Can"];
 
-export const ASSETS_PAGE_SIZE = 8;
+export const ASSETS_PAGE_SIZE = 5;
 
 export const assets = [
   { id: "ast-1", no: 1, name: "Angkor", qty: 24, unit: "Box", createdBy: "Ek Vireak" },

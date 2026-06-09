@@ -14,7 +14,9 @@ export default async function DashboardOverviewPage() {
   return (
     <div className={styles.content}>
       <DashboardHeader title="Overview" />
-      <OverviewPage statsCards={statsCards} />
+      <div className={styles.contentBody}>
+        <OverviewPage statsCards={statsCards} />
+      </div>
     </div>
   );
 }

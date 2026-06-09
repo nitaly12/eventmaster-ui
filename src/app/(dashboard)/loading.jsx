@@ -6,7 +6,9 @@ export default function DashboardLoading() {
   return (
     <div className={styles.content}>
       <DashboardHeader title="Loading" />
-      <PageContentSkeleton />
+      <div className={styles.contentBody}>
+        <PageContentSkeleton />
+      </div>
     </div>
   );
 }

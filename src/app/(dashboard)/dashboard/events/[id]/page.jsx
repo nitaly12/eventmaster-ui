@@ -15,7 +15,9 @@ export default async function DashboardEventDetailPage({ params }) {
   return (
     <div className={styles.content}>
       <DashboardHeader title="Event Details" />
-      <EventDetailPageContent event={event} />
+      <div className={styles.contentBody}>
+        <EventDetailPageContent event={event} />
+      </div>
     </div>
   );
 }

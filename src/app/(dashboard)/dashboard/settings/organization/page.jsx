@@ -6,7 +6,9 @@ export default function OrganizationProfilePage() {
   return (
     <div className={styles.content}>
       <DashboardHeader title="Account Details" />
-      <OrganizationProfileSection />
+      <div className={styles.contentBody}>
+        <OrganizationProfileSection />
+      </div>
     </div>
   );
 }

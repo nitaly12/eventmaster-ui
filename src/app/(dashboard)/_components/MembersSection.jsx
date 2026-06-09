@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { MEMBERS_PAGE_SIZE } from "../_data/membersData";
 import { apiGet, apiSend } from "@/lib/client-api";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/default-avatar";
 import { notifyDeleted, notifyUpdated } from "@/lib/toast";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { TableRowsSkeleton } from "./PageContentSkeleton";
@@ -33,41 +34,22 @@ function TrashIcon() {
   );
 }
 
-function getInitials(name) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 function isDeletable(member) {
   return member.role !== "Admin";
 }
 
 function MemberAvatar({ name, avatar, size = 36 }) {
-  if (avatar) {
-    return (
-      <Image
-        src={avatar}
-        alt={name}
-        width={size}
-        height={size}
-        className={styles.memberAvatar}
-        style={{ width: size, height: size }}
-      />
-    );
-  }
+  const src = avatar || DEFAULT_PROFILE_AVATAR;
 
   return (
-    <span
-      className={styles.memberAvatarFallback}
+    <Image
+      src={src}
+      alt={name}
+      width={size}
+      height={size}
+      className={styles.memberAvatar}
       style={{ width: size, height: size }}
-      aria-hidden
-    >
-      {getInitials(name)}
-    </span>
+    />
   );
 }
 
@@ -283,7 +265,7 @@ export function MembersSection() {
   return (
     <>
       <div className={`${styles.tableCard} ${styles.memberPageCard}`}>
-        <div className={styles.tableHeader}>
+        <div className={`${styles.tableHeader} ${styles.memberTableHeader}`}>
           <h2 className={styles.tableTitle}>Show All Members</h2>
           <div className={styles.memberSearchWrap}>
             <span className={styles.memberSearchIcon}>
@@ -347,7 +329,7 @@ export function MembersSection() {
 
           <div className={styles.memberTableBody}>
             {loading ? (
-              <TableRowsSkeleton rows={6} />
+              <TableRowsSkeleton rows={5} />
             ) : pageMembers.length === 0 ? (
               <p className={styles.memberEmpty}>No members found.</p>
             ) : (
@@ -374,11 +356,15 @@ export function MembersSection() {
                     <span className={styles.memberId}>{member.id}</span>
                     <div className={styles.memberNameCell}>
                       <MemberAvatar name={member.name} avatar={member.avatar} />
-                      <span>{member.name}</span>
+                      <span className={styles.memberName}>{member.name}</span>
                     </div>
-                    <span>{member.gender}</span>
-                    <span className={styles.memberEmail}>{member.email}</span>
-                    <span className={styles.memberAddress}>{member.address}</span>
+                    <span className={styles.memberCell}>{member.gender}</span>
+                    <span className={`${styles.memberEmail} ${styles.memberCell}`}>
+                      {member.email}
+                    </span>
+                    <span className={`${styles.memberAddress} ${styles.memberCell}`}>
+                      {member.address}
+                    </span>
                     <RoleDropdown
                       role={member.role}
                       onChange={(role) => handleRoleChange(member.id, role)}

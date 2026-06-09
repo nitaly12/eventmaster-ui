@@ -1,6 +1,8 @@
 .shell {
   display: flex;
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   background: #f9fafb;
 }
 
@@ -214,13 +216,99 @@
   flex: 1;
   margin-left: 260px;
   min-width: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 .content {
-  padding: 28px 32px 48px;
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px 32px 20px;
+}
+
+.content .header {
+  flex-shrink: 0;
+}
+
+.contentBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content > .eventsPageWrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.content > .tableCard {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 0;
+  padding: 24px 28px;
+}
+
+.content > .tableCard .assetTableHeader,
+.content > .tableCard .tableHeader {
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+.content > .tableCard .assetTableDesktop,
+.content > .tableCard .memberTableDesktop,
+.content > .tableCard .userRequestTableDesktop {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content > .tableCard .assetTableColumns,
+.content > .tableCard .memberTableColumns,
+.content > .tableCard .userRequestTableColumns,
+.content > .tableCard .attendeeTableColumns {
+  flex-shrink: 0;
+}
+
+.content > .tableCard .assetTableBody,
+.content > .tableCard .memberTableBody,
+.content > .tableCard .userRequestTableBody,
+.content > .tableCard .attendeeTableBody {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.content > .tableCard .assetTableRow,
+.content > .tableCard .userRequestTableRow,
+.content > .tableCard .memberTableRow {
+  padding: 12px 20px;
+}
+
+.content > .tableCard .pagination {
+  flex-shrink: 0;
+  margin-top: 16px;
+  padding-top: 0;
 }
 
 .pageTransition {
+  height: 100%;
+  min-height: 0;
   animation: dashboardPageIn 0.24s ease-out;
 }
 
@@ -1930,6 +2018,20 @@
 }
 
 /* ─── Members Page ─── */
+.memberTableHeader {
+  display: grid;
+  grid-template-columns: 1fr minmax(200px, 280px);
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.memberTableHeader .tableTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+}
+
 .memberSearchWrap {
   position: relative;
   width: 100%;
@@ -2107,12 +2209,12 @@
 
 .memberTableColumns {
   display: grid;
-  grid-template-columns: 40px 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
+  grid-template-columns: 40px 52px minmax(130px, 1.3fr) 72px minmax(110px, 1fr) minmax(90px, 0.95fr) minmax(136px, 140px) 68px;
   gap: 12px;
-  padding: 0 20px 12px;
-  font-size: 12px;
+  padding: 0 20px 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: #98a2b3;
   text-transform: uppercase;
 }
@@ -2120,17 +2222,17 @@
 .memberTableBody {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  overflow: visible;
+  gap: 8px;
+  overflow: hidden;
 }
 
 .memberTableRow {
   display: grid;
-  grid-template-columns: 40px 56px 1.4fr 0.7fr 1.2fr 1.4fr 120px 72px;
+  grid-template-columns: 40px 52px minmax(130px, 1.3fr) 72px minmax(110px, 1fr) minmax(90px, 0.95fr) minmax(136px, 140px) 68px;
   gap: 12px;
   align-items: center;
-  padding: 16px 20px;
-  border-radius: 14px;
+  padding: 12px 20px;
+  border-radius: 12px;
   background: #f9fafb;
   font-size: 14px;
   font-weight: 500;
@@ -2202,6 +2304,22 @@
   min-width: 0;
 }
 
+.memberName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #101828;
+}
+
+.memberCell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .memberAvatar {
   flex-shrink: 0;
   border-radius: 50%;
@@ -2242,27 +2360,38 @@
   font-size: 13px;
   font-weight: 600;
   color: #7939ef;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .roleDropdown {
   position: relative;
   width: fit-content;
+  max-width: 100%;
+  flex-shrink: 0;
 }
 
 .roleDropdownTrigger {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-width: 108px;
+  gap: 6px;
+  min-width: 124px;
   height: 34px;
   padding: 0 12px 0 14px;
   border-radius: 9999px;
   background: #ffffff;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.roleDropdownLabel {
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .roleDropdownUser {
@@ -2273,6 +2402,7 @@
 .roleDropdownSubAdmin {
   border: 1.5px solid #12b76a;
   color: #039855;
+  min-width: 132px;
 }
 
 .roleDropdownTrigger:hover {
@@ -2290,6 +2420,13 @@
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
+}
+
+.roleDropdownMenuPortal {
+  position: fixed;
+  top: auto;
+  left: auto;
+  z-index: 1200;
 }
 
 .roleDropdownDivider {
@@ -2338,7 +2475,11 @@
 }
 
 .memberTableDesktop {
-  display: block;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .memberCardsMobile {
@@ -2684,7 +2825,9 @@
 }
 
 @media (max-width: 900px) {
-  .assetTableHeader {
+  .assetTableHeader,
+  .memberTableHeader,
+  .userRequestTableHeader {
     grid-template-columns: 1fr;
   }
 }
@@ -2719,7 +2862,16 @@
   }
 
   .assetPageCard {
+    overflow-y: auto;
     overflow-x: visible;
+  }
+
+  .content {
+    padding: 16px 16px 12px;
+  }
+
+  .contentBody {
+    gap: 16px;
   }
 }
 
@@ -4364,14 +4516,36 @@
 }
 
 /* ─── User Request Page ─── */
+.userRequestTableHeader {
+  display: grid;
+  grid-template-columns: 1fr minmax(200px, 280px);
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.userRequestTableHeader .tableTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+}
+
+.userRequestTableDesktop {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .userRequestTableColumns {
   display: grid;
-  grid-template-columns: 48px 1.35fr 0.75fr 1.15fr 1fr 1fr 96px;
+  grid-template-columns: 52px minmax(140px, 1.35fr) 72px minmax(120px, 1.1fr) minmax(100px, 1fr) minmax(90px, 0.85fr) 88px;
   gap: 12px;
-  padding: 0 20px 12px;
-  font-size: 12px;
+  padding: 0 20px 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: #98a2b3;
   text-transform: uppercase;
 }
@@ -4379,16 +4553,16 @@
 .userRequestTableBody {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .userRequestTableRow {
   display: grid;
-  grid-template-columns: 48px 1.35fr 0.75fr 1.15fr 1fr 1fr 96px;
+  grid-template-columns: 52px minmax(140px, 1.35fr) 72px minmax(120px, 1.1fr) minmax(100px, 1fr) minmax(90px, 0.85fr) 88px;
   gap: 12px;
   align-items: center;
-  padding: 16px 20px;
-  border-radius: 14px;
+  padding: 12px 20px;
+  border-radius: 12px;
   background: #f9fafb;
   font-size: 14px;
   font-weight: 500;
@@ -4400,8 +4574,31 @@
   border: 1px solid #f2f4f7;
 }
 
+.userRequestName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #101828;
+}
+
+.userRequestCell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .userRequestActionCell {
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.userRequestActionCell .actionBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
 .sidebarBackdrop {
@@ -4445,6 +4642,9 @@
   .main {
     margin-left: 0;
     width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
   }
 
   .logoWrap {
@@ -4596,6 +4796,14 @@
     max-width: none;
   }
 
+  .memberTableHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .memberTableHeader .memberSearchWrap {
+    max-width: none;
+  }
+
   .memberTableDesktop {
     display: none;
   }
@@ -4613,6 +4821,14 @@
   .userRequestTableColumns,
   .userRequestTableRow {
     min-width: 640px;
+  }
+
+  .userRequestTableHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .userRequestTableHeader .memberSearchWrap {
+    max-width: none;
   }
 
   .eventsFilterCard {
